@@ -5,7 +5,7 @@ export default function Welcome() {
     return (
         <>
         <GuestLayout>
-             <Head title="Welcome" />
+             <Head title="Home" />
             <div id="pageContent" className="flex flex-col lg:flex-row gap-8 p-6 bg-green-50 text-gray-800">
                 {/* Main Column */}
                 <div id="homeColumnMain" className="flex-1 space-y-4">
@@ -29,7 +29,7 @@ export default function Welcome() {
                     <hr />
                     <div className="rounded border border-gray-300 bg-green-100 p-4">
                         <h3 className="text-xl text-green-800 text-center font-bold">New Project Launched!</h3>
-                        <img src="/uploads/article/jimmy/jimmy-1.png" alt="Jimmy Clements" className="w-full py-2" />
+                        <img src="https://images.unsplash.com/photo-1618828665011-0abd973f7bb8?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Jimmy Clements" className="w-full py-2" />
                         <p>
                             Explore the NDB’s new project <em>The Quest for Indigenous Recognition</em> produced by the National Centre of Biography and Professor Mark McKenna. Launched by the Hon. Linda Burney, Minister for Indigenous Nigerians, it details 23 key historical events leading to the 2023 Referendum on the Voice.
                         </p>

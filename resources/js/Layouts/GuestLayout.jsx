@@ -1,3 +1,4 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -19,8 +20,11 @@ export default function GuestLayout({ children }) {
             {/* Title and Search */}
             <div className="bg-white shadow-sm px-4 py-6">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h1 className="text-3xl font-bold text-center sm:text-left">Nigerian Dictionary of Biography</h1>
+                    <div className='flex items-center gap-4 sm:gap-6'>
+                        <ApplicationLogo />
+                    <h1 className="text-3xl font-bold text-center sm:text-left">Nigerian Dictionary of National Biography</h1>
 
+                    </div>
                     <form className="flex items-center gap-2 w-full sm:w-auto">
                         <select className="border rounded px-2 py-1">
                             <option value="person">person</option>
@@ -87,7 +91,7 @@ export default function GuestLayout({ children }) {
             <footer className="bg-gray-800 text-white px-4 py-6 text-sm">
                 <div className="container mx-auto text-center space-y-2">
                     <h3 className="text-lg font-semibold">Nigerian Dictionary of Biography</h3>
-                    <p>An initiative of the <a href="https://www.nigerianhistory.org" className="underline">National Centre of Nigerian Biography</a></p>
+                    <p>An initiative of the <a href="https://www.nigerianhistory.org" className="underline">Institute for Historical Studies and Biographic Research</a></p>
                     <p>© Copyright NDB, 2025 · <Link href="/copyright" className="underline">Copyright</Link> · <Link href="/disclaimer" className="underline">Disclaimer</Link> · <Link href="/privacy" className="underline">Privacy Policy</Link></p>
                 </div>
             </footer>
