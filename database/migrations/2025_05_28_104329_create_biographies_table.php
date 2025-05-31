@@ -18,7 +18,9 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('title')->nullable(); // e.g. "Professor", "Chief", etc.
             $table->date('date_of_birth')->nullable();
+            $table->string('place_of_birth')->nullable();
             $table->date('date_of_death')->nullable();
+             $table->string('place_of_death')->nullable();
             $table->string('cause_of_death')->nullable();
             $table->string('state_of_origin')->nullable();
             $table->string('lga')->nullable();
@@ -27,9 +29,10 @@ return new class extends Migration
             $table->string('language')->nullable();
             $table->string('region')->nullable();
             $table->longText('biography');
+             $table->longText('how_to_cite');
+             $table->longText('references');
             $table->string('photo')->nullable(); // path to image
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
-
             $table->timestamps();
         });
     }

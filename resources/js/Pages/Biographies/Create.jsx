@@ -3,8 +3,9 @@ import { Head, Link, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import Select from "react-select";
 
-export default function Create({ states_and_lgas = [] }) {
+export default function Create({ states_and_lgas = [], relatedOptions = [] }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         full_name: "",
         title: "",
@@ -19,6 +20,21 @@ export default function Create({ states_and_lgas = [] }) {
         region: "",
         biography: "",
         photo: null,
+        how_to_cite: "",
+        references: "",
+        related_entries: [],
+        education: [
+            {
+                institution_name: "",
+                location: "",
+                notes: "",
+                start_date: "",
+                end_date: "",
+            },
+        ],
+        occupations: [
+            { title: "", description: "", start_date: "", end_date: "" },
+        ],
     });
 
     // Find LGAs for selected state
@@ -34,9 +50,7 @@ export default function Create({ states_and_lgas = [] }) {
         if (name === "state_of_origin") setData("lga", "");
     };
 
-    const handleQuillChange = (value) => {
-        setData("biography", value);
-    };
+    const handleQuillChange = (field) => (value) => setData(field, value);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -58,7 +72,9 @@ export default function Create({ states_and_lgas = [] }) {
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="max-w-3xl mx-auto p-6">
                             <div className="flex justify-between items-center mb-6">
-                                <h1 className="text-2xl font-bold">Add Biography</h1>
+                                <h1 className="text-2xl font-bold">
+                                    Add Biography
+                                </h1>
                                 <Link
                                     href={route("biographies.index")}
                                     className="bg-gray-100 text-gray-800 px-4 py-2 rounded"
@@ -69,7 +85,9 @@ export default function Create({ states_and_lgas = [] }) {
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 {/* Full Name */}
                                 <div>
-                                    <label className="block font-medium">Full Name *</label>
+                                    <label className="block font-medium">
+                                        Full Name *
+                                    </label>
                                     <input
                                         type="text"
                                         name="full_name"
@@ -79,12 +97,16 @@ export default function Create({ states_and_lgas = [] }) {
                                         required
                                     />
                                     {errors.full_name && (
-                                        <div className="text-red-600 text-sm">{errors.full_name}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.full_name}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Title */}
                                 <div>
-                                    <label className="block font-medium">Title</label>
+                                    <label className="block font-medium">
+                                        Title
+                                    </label>
                                     <input
                                         type="text"
                                         name="title"
@@ -93,12 +115,16 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.title && (
-                                        <div className="text-red-600 text-sm">{errors.title}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.title}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Date of Birth */}
                                 <div>
-                                    <label className="block font-medium">Date of Birth</label>
+                                    <label className="block font-medium">
+                                        Date of Birth
+                                    </label>
                                     <input
                                         type="date"
                                         name="date_of_birth"
@@ -107,12 +133,34 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.date_of_birth && (
-                                        <div className="text-red-600 text-sm">{errors.date_of_birth}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.date_of_birth}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Place of Birth */}
+                                <div>
+                                    <label className="block font-medium">
+                                        Place of Birth
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="place_of_birth"
+                                        value={data.place_of_birth}
+                                        onChange={handleChange}
+                                        className="w-full border rounded px-3 py-2"
+                                    />
+                                    {errors.place_of_birth && (
+                                        <div className="text-red-600 text-sm">
+                                            {errors.place_of_birth}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Date of Death */}
                                 <div>
-                                    <label className="block font-medium">Date of Death</label>
+                                    <label className="block font-medium">
+                                        Date of Death
+                                    </label>
                                     <input
                                         type="date"
                                         name="date_of_death"
@@ -121,12 +169,34 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.date_of_death && (
-                                        <div className="text-red-600 text-sm">{errors.date_of_death}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.date_of_death}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Place of Death */}
+                                <div>
+                                    <label className="block font-medium">
+                                        Place of Death
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="place_of_death"
+                                        value={data.place_of_death}
+                                        onChange={handleChange}
+                                        className="w-full border rounded px-3 py-2"
+                                    />
+                                    {errors.place_of_death && (
+                                        <div className="text-red-600 text-sm">
+                                            {errors.place_of_death}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Cause of Death */}
                                 <div>
-                                    <label className="block font-medium">Cause of Death</label>
+                                    <label className="block font-medium">
+                                        Cause of Death
+                                    </label>
                                     <input
                                         type="text"
                                         name="cause_of_death"
@@ -135,12 +205,16 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.cause_of_death && (
-                                        <div className="text-red-600 text-sm">{errors.cause_of_death}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.cause_of_death}
+                                        </div>
                                     )}
                                 </div>
                                 {/* State of Origin */}
                                 <div>
-                                    <label className="block font-medium">State of Origin</label>
+                                    <label className="block font-medium">
+                                        State of Origin
+                                    </label>
                                     <select
                                         name="state_of_origin"
                                         value={data.state_of_origin}
@@ -149,18 +223,25 @@ export default function Create({ states_and_lgas = [] }) {
                                     >
                                         <option value="">Select State</option>
                                         {states_and_lgas.map((state) => (
-                                            <option key={state.code} value={state.name}>
+                                            <option
+                                                key={state.code}
+                                                value={state.name}
+                                            >
                                                 {state.name}
                                             </option>
                                         ))}
                                     </select>
                                     {errors.state_of_origin && (
-                                        <div className="text-red-600 text-sm">{errors.state_of_origin}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.state_of_origin}
+                                        </div>
                                     )}
                                 </div>
                                 {/* LGA */}
                                 <div>
-                                    <label className="block font-medium">LGA</label>
+                                    <label className="block font-medium">
+                                        LGA
+                                    </label>
                                     <select
                                         name="lga"
                                         value={data.lga}
@@ -169,19 +250,24 @@ export default function Create({ states_and_lgas = [] }) {
                                         disabled={!data.state_of_origin}
                                     >
                                         <option value="">Select LGA</option>
-                                        {lgas && lgas.map((lga) => (
-                                            <option key={lga} value={lga}>
-                                                {lga}
-                                            </option>
-                                        ))}
+                                        {lgas &&
+                                            lgas.map((lga) => (
+                                                <option key={lga} value={lga}>
+                                                    {lga}
+                                                </option>
+                                            ))}
                                     </select>
                                     {errors.lga && (
-                                        <div className="text-red-600 text-sm">{errors.lga}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.lga}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Ethnic Group */}
                                 <div>
-                                    <label className="block font-medium">Ethnic Group</label>
+                                    <label className="block font-medium">
+                                        Ethnic Group
+                                    </label>
                                     <input
                                         type="text"
                                         name="ethnic_group"
@@ -190,12 +276,16 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.ethnic_group && (
-                                        <div className="text-red-600 text-sm">{errors.ethnic_group}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.ethnic_group}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Religion */}
                                 <div>
-                                    <label className="block font-medium">Religion</label>
+                                    <label className="block font-medium">
+                                        Religion
+                                    </label>
                                     <input
                                         type="text"
                                         name="religion"
@@ -204,12 +294,16 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.religion && (
-                                        <div className="text-red-600 text-sm">{errors.religion}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.religion}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Language */}
                                 <div>
-                                    <label className="block font-medium">Language</label>
+                                    <label className="block font-medium">
+                                        Language
+                                    </label>
                                     <input
                                         type="text"
                                         name="language"
@@ -218,12 +312,16 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.language && (
-                                        <div className="text-red-600 text-sm">{errors.language}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.language}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Region */}
                                 <div>
-                                    <label className="block font-medium">Region</label>
+                                    <label className="block font-medium">
+                                        Region
+                                    </label>
                                     <input
                                         type="text"
                                         name="region"
@@ -232,24 +330,33 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full border rounded px-3 py-2"
                                     />
                                     {errors.region && (
-                                        <div className="text-red-600 text-sm">{errors.region}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.region}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Biography (WYSIWYG) */}
                                 <div>
-                                    <label className="block font-medium mb-1">Biography *</label>
+                                    <label className="block font-medium mb-1">
+                                        Biography *
+                                    </label>
                                     <ReactQuill
                                         value={data.biography}
-                                        onChange={handleQuillChange}
+                                        onChange={handleQuillChange('biography')}
                                         className="bg-white"
                                     />
                                     {errors.biography && (
-                                        <div className="text-red-600 text-sm">{errors.biography}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.biography}
+                                        </div>
                                     )}
                                 </div>
+                                
                                 {/* Photo */}
                                 <div>
-                                    <label className="block font-medium">Photo</label>
+                                    <label className="block font-medium">
+                                        Photo
+                                    </label>
                                     <input
                                         type="file"
                                         name="photo"
@@ -258,7 +365,309 @@ export default function Create({ states_and_lgas = [] }) {
                                         className="w-full"
                                     />
                                     {errors.photo && (
-                                        <div className="text-red-600 text-sm">{errors.photo}</div>
+                                        <div className="text-red-600 text-sm">
+                                            {errors.photo}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Education (dynamic) */}
+                                <div>
+                                    <label className="block font-medium">
+                                        Education
+                                    </label>
+                                    {data.education.map((edu, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="mb-2 flex flex-wrap gap-2 items-end"
+                                        >
+                                            <input
+                                                type="text"
+                                                placeholder="Institution"
+                                                value={edu.institution_name}
+                                                onChange={(e) => {
+                                                    const edus = [
+                                                        ...data.education,
+                                                    ];
+                                                    edus[idx].institution_name =
+                                                        e.target.value;
+                                                    setData("education", edus);
+                                                }}
+                                                className="border rounded px-2 py-1 flex-1"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Location"
+                                                value={edu.location}
+                                                onChange={(e) => {
+                                                    const edus = [
+                                                        ...data.education,
+                                                    ];
+                                                    edus[idx].location =
+                                                        e.target.value;
+                                                    setData("education", edus);
+                                                }}
+                                                className="border rounded px-2 py-1 flex-1"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Notes"
+                                                value={edu.notes}
+                                                onChange={(e) => {
+                                                    const edus = [
+                                                        ...data.education,
+                                                    ];
+                                                    edus[idx].notes =
+                                                        e.target.value;
+                                                    setData("education", edus);
+                                                }}
+                                                className="border rounded px-2 py-1 flex-1"
+                                            />
+                                            <input
+                                                type="date"
+                                                placeholder="Start Date"
+                                                value={edu.start_date}
+                                                onChange={(e) => {
+                                                    const edus = [
+                                                        ...data.education,
+                                                    ];
+                                                    edus[idx].start_date =
+                                                        e.target.value;
+                                                    setData("education", edus);
+                                                }}
+                                                className="border rounded px-2 py-1"
+                                            />
+                                            <input
+                                                type="date"
+                                                placeholder="End Date"
+                                                value={edu.end_date}
+                                                onChange={(e) => {
+                                                    const edus = [
+                                                        ...data.education,
+                                                    ];
+                                                    edus[idx].end_date =
+                                                        e.target.value;
+                                                    setData("education", edus);
+                                                }}
+                                                className="border rounded px-2 py-1"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setData(
+                                                        "education",
+                                                        data.education.filter(
+                                                            (_, i) => i !== idx
+                                                        )
+                                                    )
+                                                }
+                                                className="text-red-600 px-2"
+                                                disabled={
+                                                    data.education.length === 1
+                                                }
+                                            >
+                                                –
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setData("education", [
+                                                ...data.education,
+                                                {
+                                                    institution_name: "",
+                                                    location: "",
+                                                    notes: "",
+                                                    start_date: "",
+                                                    end_date: "",
+                                                },
+                                            ])
+                                        }
+                                        className="text-green-600 px-2"
+                                    >
+                                        + Add Education
+                                    </button>
+                                </div>
+                                {/* Occupations (dynamic) */}
+                                <div>
+                                    <label className="block font-medium">
+                                        Employment/Occupations
+                                    </label>
+                                    {data.occupations.map((occ, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="mb-2 flex flex-wrap gap-2 items-end"
+                                        >
+                                            <input
+                                                type="text"
+                                                placeholder="Title"
+                                                value={occ.title}
+                                                onChange={(e) => {
+                                                    const occs = [
+                                                        ...data.occupations,
+                                                    ];
+                                                    occs[idx].title =
+                                                        e.target.value;
+                                                    setData(
+                                                        "occupations",
+                                                        occs
+                                                    );
+                                                }}
+                                                className="border rounded px-2 py-1 flex-1"
+                                            />
+                                            <input
+                                                type="text"
+                                                placeholder="Description"
+                                                value={occ.description}
+                                                onChange={(e) => {
+                                                    const occs = [
+                                                        ...data.occupations,
+                                                    ];
+                                                    occs[idx].description =
+                                                        e.target.value;
+                                                    setData(
+                                                        "occupations",
+                                                        occs
+                                                    );
+                                                }}
+                                                className="border rounded px-2 py-1 flex-1"
+                                            />
+                                            <input
+                                                type="date"
+                                                placeholder="Start Date"
+                                                value={occ.start_date}
+                                                onChange={(e) => {
+                                                    const occs = [
+                                                        ...data.occupations,
+                                                    ];
+                                                    occs[idx].start_date =
+                                                        e.target.value;
+                                                    setData(
+                                                        "occupations",
+                                                        occs
+                                                    );
+                                                }}
+                                                className="border rounded px-2 py-1"
+                                            />
+                                            <input
+                                                type="date"
+                                                placeholder="End Date"
+                                                value={occ.end_date}
+                                                onChange={(e) => {
+                                                    const occs = [
+                                                        ...data.occupations,
+                                                    ];
+                                                    occs[idx].end_date =
+                                                        e.target.value;
+                                                    setData(
+                                                        "occupations",
+                                                        occs
+                                                    );
+                                                }}
+                                                className="border rounded px-2 py-1"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setData(
+                                                        "occupations",
+                                                        data.occupations.filter(
+                                                            (_, i) => i !== idx
+                                                        )
+                                                    )
+                                                }
+                                                className="text-red-600 px-2"
+                                                disabled={
+                                                    data.occupations.length ===
+                                                    1
+                                                }
+                                            >
+                                                –
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setData("occupations", [
+                                                ...data.occupations,
+                                                {
+                                                    title: "",
+                                                    description: "",
+                                                    start_date: "",
+                                                    end_date: "",
+                                                },
+                                            ])
+                                        }
+                                        className="text-green-600 px-2"
+                                    >
+                                        + Add Occupation
+                                    </button>
+                                </div>
+                                {/* How to Cite */}
+                                <div>
+                                    <label className="block font-medium mb-1">
+                                        How to Cite
+                                    </label>
+                                    <ReactQuill
+                                        value={data.how_to_cite}
+                                        onChange={(value) =>
+                                            setData("how_to_cite", value)
+                                        }
+                                        className="bg-white"
+                                    />
+                                    {errors.how_to_cite && (
+                                        <div className="text-red-600 text-sm">
+                                            {errors.how_to_cite}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* References */}
+                                <div>
+                                    <label className="block font-medium mb-1">
+                                        References
+                                    </label>
+                                    <ReactQuill
+                                        value={data.references}
+                                        onChange={(value) =>
+                                            setData("references", value)
+                                        }
+                                        className="bg-white"
+                                    />
+                                    {errors.references && (
+                                        <div className="text-red-600 text-sm">
+                                            {errors.references}
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Related Entries */}
+                                <div>
+                                    <label className="block font-medium">
+                                        Related Entries
+                                    </label>
+                                    <Select
+                                        isMulti
+                                        name="related_entries"
+                                        options={relatedOptions}
+                                        value={relatedOptions.filter((opt) =>
+                                            data.related_entries.includes(
+                                                opt.value
+                                            )
+                                        )}
+                                        onChange={(selected) =>
+                                            setData(
+                                                "related_entries",
+                                                selected.map((opt) => opt.value)
+                                            )
+                                        }
+                                        className="basic-multi-select"
+                                        classNamePrefix="select"
+                                        placeholder="Select related biographies..."
+                                    />
+                                    {errors.related_entries && (
+                                        <div className="text-red-600 text-sm">
+                                            {errors.related_entries}
+                                        </div>
                                     )}
                                 </div>
                                 {/* Submit */}

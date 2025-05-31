@@ -1,5 +1,7 @@
+import ndnbLogo from '../ndnbLogo.jpg'
+
 export default function ApplicationLogo(props) {
     return (
-       <img src="./ndnbLogo.jpg" alt="" width={50} />
+       <img src={ndnbLogo} alt="" width={50} />
     );
 }

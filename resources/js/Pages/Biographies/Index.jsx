@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Link, usePage, Head } from "@inertiajs/react";
+import { Link, usePage, Head, router } from "@inertiajs/react";
 import { useState } from "react";
 
 export default function Index({ biographies, filters, states }) {
@@ -8,6 +8,9 @@ export default function Index({ biographies, filters, states }) {
         filters.state_of_origin || ""
     );
 
+    const [showModal, setShowModal] = useState(false);
+    const [toDelete, setToDelete] = useState(null);
+
     const handleFilter = (e) => {
         e.preventDefault();
         let params = [];
@@ -15,6 +18,23 @@ export default function Index({ biographies, filters, states }) {
         if (stateOfOrigin)
             params.push(`state_of_origin=${encodeURIComponent(stateOfOrigin)}`);
         window.location.href = `?${params.join("&")}`;
+    };
+
+    const confirmDelete = (bio) => {
+        setToDelete(bio);
+        setShowModal(true);
+    };
+
+    const handleDelete = () => {
+        if (toDelete) {
+            console.log("Deleting:", toDelete);
+            router.delete(route("biographies.destroy", toDelete.slug), {
+                onFinish: () => {
+                    setShowModal(false);
+                    setToDelete(null);
+                },
+            });
+        }
     };
 
     return (
@@ -33,9 +53,14 @@ export default function Index({ biographies, filters, states }) {
                         <div className="max-w-5xl mx-auto p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h1 className="text-2xl font-bold mb-6 ">
-                                Biographies
-                            </h1>
-                            <Link href={route('biographies.create')}className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded">Add</Link>
+                                    Biographies
+                                </h1>
+                                <Link
+                                    href={route("biographies.create")}
+                                    className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded"
+                                >
+                                    Add
+                                </Link>
                             </div>
 
                             {/* Search & Filter */}
@@ -138,12 +163,54 @@ export default function Index({ biographies, filters, states }) {
                                                     >
                                                         Edit
                                                     </Link>
+                                                    <button
+                                                        onClick={() =>
+                                                            confirmDelete(bio)
+                                                        }
+                                                        className="text-red-600 hover:underline ml-2"
+                                                    >
+                                                        Delete
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
+
+                            {/* Confirmation Modal */}
+                            {showModal && (
+                                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+                                    <div className="bg-white rounded shadow-lg p-6 max-w-sm w-full">
+                                        <h2 className="text-lg font-bold mb-4">
+                                            Confirm Delete
+                                        </h2>
+                                        <p>
+                                            Are you sure you want to delete{" "}
+                                            <span className="font-semibold">
+                                                {toDelete?.full_name}
+                                            </span>
+                                            ?
+                                        </p>
+                                        <div className="mt-6 flex justify-end gap-2">
+                                            <button
+                                                onClick={() =>
+                                                    setShowModal(false)
+                                                }
+                                                className="px-4 py-2 rounded bg-gray-200"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleDelete}
+                                                className="px-4 py-2 rounded bg-red-600 text-white"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Pagination */}
                             <div className="flex justify-center mt-6 space-x-2">

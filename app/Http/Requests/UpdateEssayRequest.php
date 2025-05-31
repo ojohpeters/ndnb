@@ -11,7 +11,7 @@ class UpdateEssayRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,11 @@ class UpdateEssayRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => 'required|string|max:255|unique:essays,title,' . $this->route('essay')->id,
+            'content' => 'required|string',
+            'author' => 'nullable|string|max:255',
+            'date_published' => 'nullable|date',
+            'project_id' => 'nullable|exists:projects,id',
         ];
     }
 }

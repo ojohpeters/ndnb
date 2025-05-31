@@ -11,22 +11,24 @@ export default function AuthenticatedLayout({ header, children }) {
     const navLinks = [
         { name: "Dashboard", routeName: "dashboard" },
         { name: "Biographies", routeName: "biographies.index" },
-        { name: "Education", routeName: "education.index" },
-        { name: "Occupations", routeName: "occupations.index" },
-        { name: "Awards", routeName: "awards.index" },
-        { name: "Workplaces", routeName: "workplaces.index" },
-        // { name: "News", routeName: "news.index" },
-        { name: "Projects", routeName: "projects.index" },
-        { name: "Essays", routeName: "essays.index" },
+        // { name: "Education", routeName: "education.index" },
+        // { name: "Occupations", routeName: "occupations.index" },
+        // { name: "Awards", routeName: "awards.index" },
+        // { name: "Workplaces", routeName: "workplaces.index" },
+        // // { name: "News", routeName: "news.index" },
+        // { name: "Projects", routeName: "projects.index" },
+        // { name: "Essays", routeName: "essays.index" },
     ];
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
             {/* Sidebar */}
-            <aside className={`h-full bg-white shadow-md flex flex-col transition-all duration-200 ${sidebarOpen ? "w-64" : ""}`}>
+            <aside className={`h-full bg-white shadow-md flex flex-col transition-all duration-200 ${sidebarOpen ? "w-64" : ""}`} style={{
+                minHeight: "100vh",
+            }}>
                 {/* Toggle button */}
                 <button
-                    className="fixed top-4 right-[20px] z-10 bg-white border rounded-full shadow p-1 focus:outline-none"
+                    className="absolute top-4 right-[20px] z-10 bg-white border rounded-full shadow p-1 focus:outline-none"
                     onClick={() => setSidebarOpen((open) => !open)}
                     aria-label="Toggle sidebar"
                 >
@@ -40,7 +42,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </button>
 
                 {/* User profile section */}
-                <div className="flex flex-col items-center px-4 py-6 border-b border-gray-200">
+                <div className="flex flex-col items-center px-4 py-6 border-b border-gray-200 ">
                     <img
                         src={user.profile_photo_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.name)}
                         alt={user.name}

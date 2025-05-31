@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreEssayRequest extends FormRequest
+class UpdateRelatedEntriesRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -22,11 +22,7 @@ class StoreEssayRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255|unique:essays,title',
-            'content' => 'required|string',
-            'author' => 'nullable|string|max:255',
-            'date_published' => 'nullable|date',
-            'project_id' => 'nullable|exists:projects,id',
+            //
         ];
     }
 }

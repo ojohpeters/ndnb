@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('essays', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->string('author')->nullable();
+            $table->longText('content')->nullable();
+            $table->date('date_published')->nullable();
+            $table->string('thumbnail_image')->nullable();
+            $table->foreignId('project_id')->nullable()->constrained('projects')->nullOnDelete();
             $table->timestamps();
         });
     }
