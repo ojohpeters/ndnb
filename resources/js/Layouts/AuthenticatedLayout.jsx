@@ -2,7 +2,7 @@ import { useState } from "react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
-import { Link, usePage } from "@inertiajs/react";
+import { Link, usePage, router } from "@inertiajs/react";
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
@@ -20,23 +20,47 @@ export default function AuthenticatedLayout({ header, children }) {
         // { name: "Essays", routeName: "essays.index" },
     ];
 
+    const handleLogout = (e) => {
+        e.preventDefault();
+        router.post(route("logout"));
+    };
+
     return (
         <div className="min-h-screen bg-gray-100 flex">
             {/* Sidebar */}
-            <aside className={`h-full bg-white shadow-md flex flex-col transition-all duration-200 ${sidebarOpen ? "w-64" : ""}`} style={{
-                minHeight: "100vh",
-            }}>
+            <aside
+                className={`h-full bg-white shadow-md flex flex-col transition-all duration-200 ${
+                    sidebarOpen ? "w-64" : ""
+                }`}
+                style={{
+                    minHeight: "100vh",
+                }}
+            >
                 {/* Toggle button */}
                 <button
                     className="absolute top-4 right-[20px] z-10 bg-white border rounded-full shadow p-1 focus:outline-none"
                     onClick={() => setSidebarOpen((open) => !open)}
                     aria-label="Toggle sidebar"
                 >
-                    <svg className="h-6 w-6 text-gray-700" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <svg
+                        className="h-6 w-6 text-gray-700"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        viewBox="0 0 24 24"
+                    >
                         {sidebarOpen ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
                         ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M4 6h16M4 12h16M4 18h16"
+                            />
                         )}
                     </svg>
                 </button>
@@ -44,13 +68,19 @@ export default function AuthenticatedLayout({ header, children }) {
                 {/* User profile section */}
                 <div className="flex flex-col items-center px-4 py-6 border-b border-gray-200 ">
                     <img
-                        src={user.profile_photo_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.name)}
+                        src={
+                            user.profile_photo_url ||
+                            "https://ui-avatars.com/api/?name=" +
+                                encodeURIComponent(user.name)
+                        }
                         alt={user.name}
                         className="w-12 h-12 rounded-full mb-2"
                     />
                     {sidebarOpen && (
                         <>
-                            <span className="font-semibold text-gray-800">{user.name}</span>
+                            <span className="font-semibold text-gray-800">
+                                {user.name}
+                            </span>
                             <div className="flex flex-col mt-2 w-full">
                                 <Link
                                     href={route("profile.edit")}
@@ -58,7 +88,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Profile
                                 </Link>
-                                <form method="POST" action={route("logout")}>
+                                <form
+                                    method="POST"
+                                    onSubmit={handleLogout}
+                                    className="w-full"
+                                >
+                                    
                                     <button
                                         type="submit"
                                         className="text-sm text-red-600 hover:text-red-800 py-1 text-left w-full"
@@ -77,7 +112,9 @@ export default function AuthenticatedLayout({ header, children }) {
                         <Link
                             key={name}
                             href={route(routeName)}
-                            className={`block rounded px-3 py-2 text-gray-700 hover:bg-indigo-100 hover:text-indigo-900 ${!sidebarOpen ? "text-center px-0" : ""}`}
+                            className={`block rounded px-3 py-2 text-gray-700 hover:bg-indigo-100 hover:text-indigo-900 ${
+                                !sidebarOpen ? "text-center px-0" : ""
+                            }`}
                             title={!sidebarOpen ? name : undefined}
                         >
                             {sidebarOpen ? name : name[0]}
