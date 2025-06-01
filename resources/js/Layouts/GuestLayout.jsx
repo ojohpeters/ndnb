@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 export default function GuestLayout({ children }) {
     const [showBrowse, setShowBrowse] = useState(false);
-    const [showWarning, setShowWarning] = useState(true);
+    const [showWarning, setShowWarning] = useState(false);
     const { auth } = usePage().props;
 
     return (
@@ -106,7 +106,7 @@ export default function GuestLayout({ children }) {
             </main>
 
             {/* Footer */}
-            <footer className="bg-gray-800 text-white px-4 py-6 text-sm">
+            <footer className="bg-green-800 text-white px-4 py-6 text-sm">
                 <div className="container mx-auto text-center space-y-2">
                     <h3 className="text-lg font-semibold">Nigerian Dictionary of National Biography</h3>
                     <p>An initiative of the <a href="https://www.https://instituteforhistoricalstudies.org" className="underline">Institute for Historical Studies, Biographical Research, Documentation and Legacy</a></p>

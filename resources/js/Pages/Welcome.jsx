@@ -148,7 +148,7 @@ export default function Welcome({ latestBiography, latestBiographies, bornThisDa
                                 ))}
                             </div>
                             <h5 className="mt-4 text-green-800 font-semibold">
-                                <Link href="/biographies/all" className="underline">
+                                <Link href="/biographies" className="underline">
                                     All Biographies
                                 </Link>
                             </h5>

@@ -19,8 +19,8 @@ use App\Http\Controllers\WorkplaceController;
 use App\Http\Controllers\OccupationController;
 
 Route::get('/', function () {
-    $latestBiographies = Biography::latest(6)->get();
-    $latestBiography = $latestBiographies[0];
+    $latestBiographies = Biography::latest()->take(6)->get();
+$latestBiography = $latestBiographies[0] ?? null;
 
     // Get today's month and day
     $today = Carbon::today();

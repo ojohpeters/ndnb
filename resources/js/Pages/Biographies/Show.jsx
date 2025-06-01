@@ -1,9 +1,9 @@
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link } from "@inertiajs/react";
+import { useRef, useState } from "react";
 
 export default function Show({ biography, related_essays = [] }) {
-    console.log(biography);
-    // Destructure biography fields for clarity
+    // console.log(biography);
     const {
         full_name,
         title,
@@ -26,6 +26,7 @@ export default function Show({ biography, related_essays = [] }) {
         education,
         references,
         how_to_cite,
+        creator
     } = biography;
 
     // Helper: format date
@@ -50,13 +51,31 @@ export default function Show({ biography, related_essays = [] }) {
         }
     }
 
+    // Copy to clipboard for How to Cite
+    const citeRef = useRef();
+    const [copied, setCopied] = useState(false);
+    const handleCopy = () => {
+        if (citeRef.current) {
+            // Get plain text from HTML
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = how_to_cite;
+            const text = tempDiv.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+            });
+        }
+    };
+
     return (
         <GuestLayout>
             <Head title={full_name} />
 
-            <div className="mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="mx-auto flex flex-col-reverse lg:flex-row gap-8 p-4">
+               
+
                 {/* Main Content */}
-                <article className="lg:col-span-2">
+                <article className="flex-1">
                     <header className="mb-6">
                         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
                             {full_name}
@@ -73,6 +92,7 @@ export default function Show({ biography, related_essays = [] }) {
                                 {title}
                             </div>
                         )}
+                        <p>by <span className="font-bold">{creator.name}</span></p>
                     </header>
 
                     {/* Biography Content */}
@@ -80,82 +100,80 @@ export default function Show({ biography, related_essays = [] }) {
                         className="prose max-w-none"
                         dangerouslySetInnerHTML={{ __html: bioContent }}
                     />
-                    {/* Related Essays */}
-                    {related_essays.length > 0 && (
-                        <section className="mt-8">
-                            <h3 className="text-xl font-semibold mb-2">
-                                Related Essays
-                            </h3>
-                            <ul className="list-disc list-inside">
-                                {related_essays.map((essay) => (
-                                    <li key={essay.id}>
-                                        <Link
-                                            href={route(
-                                                "essays.show",
-                                                essay.id
-                                            )}
-                                            className="text-blue-700 hover:underline"
-                                        >
-                                            {essay.title}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    )}
-                    {/* References */}
-                    <h2 className="mt-5 font-bold">
-                        References and further reading
-                    </h2>
-                    <section
-                        className="max-w-none prose "
-                        dangerouslySetInnerHTML={{ __html: references }}
-                    />
 
-                    <h2 className="mt-5 font-bold">How To Cite</h2>
-                    <section
-                        className="max-w-none"
-                        dangerouslySetInnerHTML={{ __html: how_to_cite }}
-                    />
+                    {/* References */}
+                    <div className="my-8 p-6 rounded-lg border-l-4 border-green-700 bg-green-50 shadow h-fit">
+                        <h2 className="font-bold text-green-800 mb-2 text-xl">
+                            References and Further Reading
+                        </h2>
+                        <section
+                            className="max-w-none prose"
+                            dangerouslySetInnerHTML={{ __html: references }}
+                        />
+                    </div>
+
+                    {/* How To Cite */}
+                    <div className="my-8 p-6 rounded-lg border-l-4 border-indigo-700 bg-indigo-50 shadow relative h-fit">
+                        <h2 className="font-bold text-indigo-800 mb-2 text-xl">
+                            How To Cite
+                        </h2>
+                        <section
+                            ref={citeRef}
+                            className="max-w-none prose"
+                            dangerouslySetInnerHTML={{ __html: how_to_cite }}
+                        />
+                        <button
+                            onClick={handleCopy}
+                            className="absolute top-6 right-6 bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition text-sm"
+                        >
+                            {copied ? "Copied!" : "Copy"}
+                        </button>
+                    </div>
+
                     {/* Related Entries as pills */}
-                {biography.related_biographies &&
-                    biography.related_biographies.length > 0 && (
-                        <div className="mt-4">
-                            <h3 className="font-semibold mb-2">
-                                Related Entries
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                                {biography.related_biographies.map((rel) => (
-                                    <Link
-                                        key={rel.id}
-                                        href={route(
-                                            "biographies.show",
-                                            rel.slug
-                                        )}
-                                        className="inline-block px-4 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm font-medium hover:bg-indigo-200 transition"
-                                    >
-                                        {rel.full_name}
-                                    </Link>
-                                ))}
+                    {biography.related_biographies &&
+                        biography.related_biographies.length > 0 && (
+                            <div className="mt-4">
+                                <h3 className="font-semibold mb-2">
+                                    Related Entries
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {biography.related_biographies.map((rel) => (
+                                        <Link
+                                            key={rel.id}
+                                            href={route(
+                                                "biographies.show",
+                                                rel.slug
+                                            )}
+                                            className="inline-block px-4 py-1 rounded-full bg-indigo-100 text-indigo-800 text-sm font-medium hover:bg-indigo-200 transition"
+                                        >
+                                            {rel.full_name}
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                 </article>
-                
-                
-                {/* Aside: Life Summary */}
-                <aside className="lg:col-span-1 bg-gray-50 border rounded p-6 mb-8 lg:mb-0">
-                    {/* Photo */}
+                 {/* Aside: Life Summary */}
+                <aside className="lg:w-1/3 bg-gray-50 border rounded p-6 mb-8 lg:mb-0">
                     {photo && (
-                        <img
+                        <>
+                            <img
                             src={
                                 photo.startsWith("http")
                                     ? photo
                                     : `/storage/${photo}`
                             }
                             alt={full_name}
-                            className="w-64 rounded shadow mb-6 ml-6 mb-4 lg:mb-0 lg:ml-8"
+                            className="w-full object-cover rounded shadow "
                         />
+                        <p className="mb-6" style={{
+                            fontStyle: "italic",
+                            color: "#555",
+                            textAlign: "center",
+                            marginTop: "0.5rem",
+                        }}>{full_name}</p>
+                        </>
                     )}
                     <h3 className="text-lg font-bold mb-4">Life Summary</h3>
                     <dl className="space-y-3">
