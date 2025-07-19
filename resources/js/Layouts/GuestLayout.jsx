@@ -1,117 +1,95 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 
 export default function GuestLayout({ children }) {
-    const [showBrowse, setShowBrowse] = useState(false);
-    const [showWarning, setShowWarning] = useState(false);
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const { auth } = usePage().props;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col text-gray-800">
-            {/* Top Nav */}
-            <div className="bg-gray-100 border-b text-sm px-4 py-2 flex justify-end space-x-4">
-                {/* <a href="#" className="hover:underline">Obituaries Nigeria</a>
-                <a href="#" className="hover:underline">People Nigeria</a>
-                <a href="#" className="hover:underline">Indigenous Nigeria</a>
-                <a href="#" className="hover:underline">Women Nigeria</a>
-                <a href="#" className="hover:underline">Labour Nigeria</a> */}
-                {auth?.user && (
-                    <Link
-                        href={route('dashboard')}
-                        className="ml-4 bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700"
-                    >
-                        Back to Dashboard
-                    </Link>
-                )}
+        <div className="min-h-screen bg-gray-100">
+            {/* Navigation */}
+            <nav className="bg-white border-b border-gray-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between h-16">
+                        <div className="flex">
+                            <div className="shrink-0 flex items-center">
+                                <Link href="/" className="text-2xl font-bold text-green-800">
+                                    NDNB
+                                </Link>
+                            </div>
+                        </div>
 
-                {!auth?.user && (
-                    <Link
-                        href={route('login')}
-                        className="ml-4 bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700"
-                    >
-                        Login
-                    </Link>
-                )}
-            </div>
+                        <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <Link
+                                href="/"
+                                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                href="/biographies"
+                                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            >
+                                Biographies
+                            </Link>
+                            <Link
+                                href="/about-us"
+                                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            >
+                                About
+                            </Link>
+                            <Link
+                                href="/contact-us"
+                                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            >
+                                Contact
+                            </Link>
+                            <Link
+                                href="/faq"
+                                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            >
+                                FAQ
+                            </Link>
+                        </div>
 
-            {/* Title and Search */}
-            <div className="bg-white shadow-sm px-4 py-6">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className='flex items-center gap-4 sm:gap-6'>
-                        <ApplicationLogo />
-                    <h1 className="text-3xl font-bold text-center sm:text-left text-green-900">Nigerian Dictionary of National Biography</h1>
-
+                        <div className="hidden sm:flex sm:items-center sm:ms-6">
+                            {auth?.user ? (
+                                <Link
+                                    href="/dashboard"
+                                    className="text-sm text-gray-700 underline"
+                                >
+                                    Dashboard
+                                </Link>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/login"
+                                        className="text-sm text-gray-700 underline mr-4"
+                                    >
+                                        Log in
+                                    </Link>
+                                    <Link
+                                        href="/register"
+                                        className="text-sm text-gray-700 underline"
+                                    >
+                                        Register
+                                    </Link>
+                                </>
+                            )}
+                        </div>
                     </div>
-                    {/* <form className="flex items-center gap-2 w-full sm:w-auto">
-                        <select className="border rounded px-2 py-1">
-                            <option value="person">person</option>
-                            <option value="all" selected>text</option>
-                        </select>
-                        <input type="text" placeholder="Quick search..." className="border rounded px-2 py-1 w-full sm:w-64" />
-                        <button type="submit" className="bg-green-600 text-white px-3 py-1 rounded">Search</button>
-                    </form> */}
                 </div>
-            </div>
-
-            {/* Main Navigation */}
-            <nav className="bg-green-900 text-white">
-                <ul className="flex flex-wrap justify-center space-x-4 px-4 py-3 text-sm font-medium">
-                    <li><Link href="/" className="hover:underline">Home</Link></li>
-                    <li><Link href="/about-us" className="hover:underline">About</Link></li>
-                    <li><Link href="/contact-us" className="hover:underline">Contact</Link></li>
-                    <li><Link href={route('biographies.all')} className="hover:underline">Biographies</Link></li>
-                    {/* <li><Link href="/essays/browse" className="hover:underline">Group Bios</Link></li>
-                    <li><Link href="/advanced-search" className="hover:underline">Advanced Search</Link></li>
-                    <li><Link href="/facets" className="hover:underline">Faceted Browse</Link></li>
-                    <li><button onClick={() => setShowBrowse(!showBrowse)} className="hover:underline">Browse</button></li>
-                    <li><Link href="/donate" className="hover:underline">Donate</Link></li> */}
-                </ul>
             </nav>
 
-            {/* Browse Panel */}
-            {showBrowse && (
-                <div className="bg-gray-100 border-t px-4 py-4">
-                    <h3 className="font-semibold mb-2">Browse by:</h3>
-                    <ul className="space-x-4 flex flex-wrap text-sm">
-                        <li><Link href="/biographies/name" className="text-blue-700 hover:underline">Name</Link></li>
-                        <li><Link href="/biographies/birth" className="text-blue-700 hover:underline">Date of Birth</Link></li>
-                        <li><Link href="/biographies/death" className="text-blue-700 hover:underline">Date of Death</Link></li>
-                        <li><Link href="/biographies/browse-author" className="text-blue-700 hover:underline">Author</Link></li>
-                        {/* <li><Link href="/entities/browse/?otype=map" className="text-blue-700 hover:underline">Maps</Link></li> */}
-                    </ul>
-                </div>
-            )}
-
-            {/* Cultural Warning */}
-            {showWarning && (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h2 className="font-bold mb-2">Cultural Advice</h2>
-                            <p>This site may contain names, images, and voices of deceased persons.</p>
-                            <p>Some articles reflect views from earlier periods that may no longer be appropriate.</p>
-                        </div>
-                        <button
-                            onClick={() => setShowWarning(false)}
-                            className="ml-4 text-sm underline"
-                        >Hide message</button>
-                    </div>
-                </div>
-            )}
-
-            {/* Main Content */}
-            <main className="flex-grow container mx-auto px-4 py-8">
-                {children}
-            </main>
+            {/* Page Content */}
+            <main>{children}</main>
 
             {/* Footer */}
             <footer className="bg-green-800 text-white px-4 py-6 text-sm">
                 <div className="container mx-auto text-center space-y-2">
                     <h3 className="text-lg font-semibold">Nigerian Dictionary of National Biography</h3>
-                    <p>An initiative of the <a href="https://www.https://instituteforhistoricalstudies.org" className="underline">Institute for Historical Studies, Biographical Research, Documentation and Legacy</a></p>
-                    {/* <p>© Copyright NDNB, 2025 · <Link href="/copyright" className="underline">Copyright</Link> · <Link href="/disclaimer" className="underline">Disclaimer</Link> · <Link href="/privacy" className="underline">Privacy Policy</Link></p> */}
-                    <p>© Copyright NDNB, 2025 ·</p>
+                    <p>An initiative of the <a href="https://instituteforhistoricalstudies.org" className="underline">Institute for Historical Studies, Biographical Research, Documentation and Legacy</a></p>
+                    <p>© Copyright NDNB, 2025</p>
                 </div>
             </footer>
         </div>

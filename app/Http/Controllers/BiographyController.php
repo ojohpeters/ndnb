@@ -11,6 +11,15 @@ use App\Http\Requests\UpdateBiographyRequest;
 
 class BiographyController extends Controller
 {
+    public $regions = [
+        'North Central' => ['Abuja', 'Benue', 'Kogi', 'Kwara', 'Nassarawa', 'Niger', 'Plateau'],
+        'North East' => ['Adamawa', 'Bauchi', 'Borno', 'Gombe', 'Taraba', 'Yobe'],
+        'North West' => ['Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Sokoto', 'Zamfara'],
+        'South East' => ['Abia', 'Anambra', 'Ebonyi', 'Enugu', 'Imo'],
+        'South South' => ['AkwaIbom', 'Bayelsa', 'CrossRiver', 'Delta', 'Edo', 'Rivers'],
+        'South West' => ['Ekiti', 'Lagos', 'Ogun', 'Ondo', 'Osun', 'Oyo']
+    ];
+
     public $states_and_lgas = [
         [
             "code" => "FC",
@@ -1030,12 +1039,51 @@ class BiographyController extends Controller
             $query->where('state_of_origin', request('state_of_origin'));
         }
 
-        // For filter dropdown
+        // Filter by region
+        if (request('region')) {
+            $query->where('region', request('region'));
+        }
+
+        // Filter by birth year
+        if (request('birth_year')) {
+            $query->whereYear('date_of_birth', request('birth_year'));
+        }
+
+        // Filter by birth month
+        if (request('birth_month')) {
+            $query->whereMonth('date_of_birth', request('birth_month'));
+        }
+
+        // Filter by birth day
+        if (request('birth_day')) {
+            $query->whereDay('date_of_birth', request('birth_day'));
+        }
+
+        // Filter by occupation
+        if (request('occupation')) {
+            $query->whereHas('occupations', function($q) {
+                $q->where('title', 'like', '%' . request('occupation') . '%');
+            });
+        }
+
+        // For filter dropdowns
         $states = Biography::select('state_of_origin')
             ->distinct()
             ->whereNotNull('state_of_origin')
             ->orderBy('state_of_origin')
             ->pluck('state_of_origin');
+
+        $regions = Biography::select('region')
+            ->distinct()
+            ->whereNotNull('region')
+            ->orderBy('region')
+            ->pluck('region');
+
+        $occupations = \App\Models\Occupation::select('title')
+            ->distinct()
+            ->whereNotNull('title')
+            ->orderBy('title')
+            ->pluck('title');
 
         $biographies = $query->latest()->paginate(15)->withQueryString();
 
@@ -1044,8 +1092,15 @@ class BiographyController extends Controller
             'filters' => [
                 'search' => request('search'),
                 'state_of_origin' => request('state_of_origin'),
+                'region' => request('region'),
+                'birth_year' => request('birth_year'),
+                'birth_month' => request('birth_month'),
+                'birth_day' => request('birth_day'),
+                'occupation' => request('occupation'),
             ],
             'states' => $states,
+            'regions' => $regions,
+            'occupations' => $occupations,
         ]);
     }
 
@@ -1058,6 +1113,7 @@ class BiographyController extends Controller
 
         return inertia('Biographies/Create', [
             'states_and_lgas' => $this->states_and_lgas,
+            'regions' => $this->regions,
             'relatedOptions' => Biography::select('id', 'full_name')->get()->map(fn($b) => [
                 'value' => $b->id,
                 'label' => $b->full_name,

@@ -10,4 +10,15 @@ export default defineConfig({
         }),
         react(),
     ],
+    server: {
+        host: 'localhost',
+        hmr: {
+            protocol: 'ws',
+            host: 'localhost',
+            port: 5173,
+        },
+        watch: {
+            ignored: ['**/vendor/**'],
+        },
+    },
 });

@@ -59,6 +59,10 @@ Route::get('/contact-us', function () {
 })->name('contact');
 Route::post('/contact-us', [ContactController::class, 'submit'])->name('contact.submit');
 
+Route::get('/faq', function () {
+    return Inertia::render('FAQ');
+})->name('faq');
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

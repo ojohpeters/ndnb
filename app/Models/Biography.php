@@ -30,6 +30,12 @@ class Biography extends Model
         'created_by',
         'how_to_cite',
         'references',
+        'bibliography',
+        'further_reading',
+    ];
+
+    protected $casts = [
+        'bibliography' => 'array',
     ];
 
     // route key
