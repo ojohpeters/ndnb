@@ -64,7 +64,15 @@ Route::get('/faq', function () {
 })->name('faq');
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $user = auth()->user();
+    $stats = [
+        'totalBiographies' => Biography::where('user_id', $user->id)->count(),
+        'drafts' => Biography::where('user_id', $user->id)->where('status', 'draft')->count(),
+        'underReview' => Biography::where('user_id', $user->id)->whereIn('status', ['submitted', 'under_review', 'copy_editing', 'editor_review'])->count(),
+        'published' => Biography::where('user_id', $user->id)->where('status', 'published')->count(),
+    ];
+    
+    return Inertia::render('Dashboard', ['stats' => $stats]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->prefix('dashboard')->group(function () {

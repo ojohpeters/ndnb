@@ -36,6 +36,7 @@ class User extends Authenticatable
         'lga_of_residence',
         'ethnicity',
         'country_of_residence',
+        'bio',
         'password',
     ];
 

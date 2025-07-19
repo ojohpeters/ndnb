@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -28,6 +27,7 @@ return new class extends Migration
             $table->string('lga_of_residence')->nullable()->after('state_of_residence');
             $table->string('ethnicity')->nullable()->after('lga_of_residence');
             $table->string('country_of_residence')->default('Nigeria')->after('ethnicity');
+            $table->text('bio')->nullable()->after('country_of_residence');
         });
     }
 
@@ -41,7 +41,7 @@ return new class extends Migration
                 'first_name', 'middle_name', 'last_name', 'username', 'sex',
                 'phone_number', 'educational_status', 'area_of_study', 'level_of_study',
                 'state_of_origin', 'lga_of_origin', 'state_of_residence', 'lga_of_residence',
-                'ethnicity', 'country_of_residence'
+                'ethnicity', 'country_of_residence', 'bio'
             ]);
         });
     }
