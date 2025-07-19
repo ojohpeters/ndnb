@@ -1,0 +1,20 @@
+And submit, should send it to the Editors Approval Dashboard (EAD).
+Editors Approval Dashboard (EAD): This will be where all entries submitted by contributors. Articles would have to be approved by the appropriate editor, and sent to the Editor in Chief for publication for publication. The Editors Approval Dashboard (EAD) should have the following functionalities that appear on the current Biographies page plus others as follows
+Preview
+Edit
+Approve – Sends article to the Copy Editors Dashboard (CED) dashboard for copy editing checks.
+ReDraft – sends notification to the contributor to make appropriate corrections in draft as noted = [Your draft needs some revisions. Please review the editor’s notes and resubmit when ready. Thank you for your contribution!]
+Decline –sends notification to a contributor that article has been rejected and deleted with reason = [We regret to inform you that your article has been declined. Please see the reason provided. Thank you for your effort and interest.] This button will replace the delete button. 
+
+There would be a Copy Editors Dashboard (CED)
+A Copy Editor checks:
+Grammar, tone, and readability
+Consistency with NDNB house style
+Formatting of the bibliography
+Once Copy Editor is done with review, the article is forwarded to the Editor-in-Chief Dashboard (EICD) by Clicking Approve button.
+
+
+There will also be the Editor in Chief Dashboard (EICD). It will contain all the functionalities on the Editors Approval Dashboard, exactly acs they are with all functions and in addition, a Publish button.
+Publish – when the Editor pushes the Publish button it goes live and notifies the contributor of the article: “Congratulations! Your article on [Name of Biography] has been published. Keep building — feel free to create another biography.”
+Return – returns entry back to the Category Editor with notification to the Editors Approval Dashboard to make appropriate corrections in draft as noted and resend via the process
+Decline – Deletes entry and sends notification to a contributor that article has been rejected and deleted with reason = [We regret to inform you that your article has been declined. Please see the reason provided. Thank you for your effort and interest.] This button will replace the delete button.
