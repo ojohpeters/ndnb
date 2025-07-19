@@ -10,6 +10,7 @@ export default function Create({ projects}) {
         author: "",
         date_published: "",
         project_id: "",
+        status: "draft",
     });
 
     const handleChange = (e) => {
@@ -21,8 +22,9 @@ export default function Create({ projects}) {
         setData("content", value);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e, status) => {
         e.preventDefault();
+        setData("status", status);
         post(route("essays.store"));
     };
 
@@ -49,7 +51,7 @@ export default function Create({ projects}) {
                                     Back
                                 </Link>
                             </div>
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
                                 {/* Title */}
                                 <div>
                                     <label className="block font-medium">Title *</label>
@@ -129,16 +131,27 @@ export default function Create({ projects}) {
                                         <div className="text-red-600 text-sm">{errors.project_id}</div>
                                     )}
                                 </div>
-                                
+
                                 {/* Submit */}
                                 <div>
+                                  <div className="flex space-x-4">
                                     <button
-                                        type="submit"
+                                        type="button"
+                                        onClick={(e) =>  handleSubmit(e, 'draft')}
                                         disabled={processing}
-                                        className="bg-indigo-600 text-white px-6 py-2 rounded"
+                                        className="bg-gray-600 text-white px-4 py-2 rounded"
                                     >
-                                        {processing ? "Saving..." : "Save"}
+                                        {processing ? "Saving..." : "Save as Draft"}
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleSubmit(e, 'submitted')}
+                                        disabled={processing}
+                                        className="bg-indigo-600 text-white px-4 py-2 rounded"
+                                    >
+                                        {processing ? "Publishing..." : "Submit for Review"}
+                                    </button>
+                                </div>
                                 </div>
                             </form>
                         </div>

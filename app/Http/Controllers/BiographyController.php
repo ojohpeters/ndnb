@@ -1128,27 +1128,96 @@ class BiographyController extends Controller
     public function store(StoreBiographyRequest $request)
     {
         $data = $request->validated();
-        $data['user_id'] = auth()->id();
+        $data['created_by'] = auth()->id();
 
-        // Set submitted_at if status is submitted
-        if ($data['status'] === 'submitted') {
+        if ($data['status'] === 'draft') {
+            // Save as draft in separate table
+            $draftData = [
+                'created_by' => $data['created_by'],
+                'full_name' => $data['full_name'],
+                'title' => $data['title'] ?? null,
+                'date_of_birth' => $data['date_of_birth'] ?? null,
+                'date_of_death' => $data['date_of_death'] ?? null,
+                'place_of_birth' => $data['place_of_birth'] ?? null,
+                'place_of_death' => $data['place_of_death'] ?? null,
+                'cause_of_death' => $data['cause_of_death'] ?? null,
+                'state_of_origin' => $data['state_of_origin'] ?? null,
+                'local_government_area' => $data['lga'] ?? null,
+                'ethnicity' => $data['ethnic_group'] ?? null,
+                'religion' => $data['religion'] ?? null,
+                'region' => $data['region'] ?? null,
+                'biography_text' => $data['biography'] ?? null,
+                'how_to_cite' => $data['how_to_cite'] ?? null,
+                'references' => $data['references'] ?? null,
+                'education' => $data['education'] ?? [],
+                'occupations' => $data['occupations'] ?? [],
+                'related_entries' => $data['related_entries'] ?? [],
+            ];
+
+            \App\Models\DraftBiography::create($draftData);
+            
+            return redirect()
+                ->route('biographies.drafts')
+                ->with('success', 'Biography saved as draft successfully.');
+        } else {
+            // Submit for review - save to main biographies table
+            $slug = \Illuminate\Support\Str::slug($data['full_name']);
+            $originalSlug = $slug;
+            $count = 1;
+            while (Biography::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $count++;
+            }
+            $data['slug'] = $slug;
             $data['submitted_at'] = now();
-        }
 
-        $biography = Biography::create($data);
-        
-        // Send notification if submitted
-        if ($data['status'] === 'submitted') {
+            $mappedData = [
+                'created_by' => $data['created_by'],
+                'full_name' => $data['full_name'],
+                'slug' => $data['slug'],
+                'title' => $data['title'] ?? null,
+                'date_of_birth' => $data['date_of_birth'] ?? null,
+                'date_of_death' => $data['date_of_death'] ?? null,
+                'place_of_birth' => $data['place_of_birth'] ?? null,
+                'place_of_death' => $data['place_of_death'] ?? null,
+                'cause_of_death' => $data['cause_of_death'] ?? null,
+                'state_of_origin' => $data['state_of_origin'] ?? null,
+                'local_government_area' => $data['lga'] ?? null,
+                'ethnicity' => $data['ethnic_group'] ?? null,
+                'religion' => $data['religion'] ?? null,
+                'region' => $data['region'] ?? null,
+                'biography_text' => $data['biography'] ?? null,
+                'how_to_cite' => $data['how_to_cite'] ?? null,
+                'references' => $data['references'] ?? null,
+                'status' => 'submitted',
+                'submitted_at' => now(),
+            ];
+
+            $education = $data['education'] ?? [];
+            $occupations = $data['occupations'] ?? [];
+            $relatedEntries = $data['related_entries'] ?? [];
+
+            $biography = Biography::create($mappedData);
+
+            foreach ($education as $edu) {
+                if (!empty($edu['institution_name'])) {
+                    $biography->education()->create($edu);
+                }
+            }
+
+            foreach ($occupations as $occ) {
+                if (!empty($occ['title'])) {
+                    $biography->occupations()->create($occ);
+                }
+            }
+
+            $biography->relatedBiographies()->sync($relatedEntries);
+            
             NotificationService::notifyBiographySubmitted($biography);
+            
+            return redirect()
+                ->route('biographies.index')
+                ->with('success', 'Biography submitted for review successfully.');
         }
-        
-        $message = $data['status'] === 'draft' 
-            ? 'Biography saved as draft successfully.' 
-            : 'Biography submitted for review successfully.';
-
-        return redirect()
-            ->route('biographies.index')
-            ->with('success', 'Biography created successfully!');
     }
 
     /**
@@ -1237,9 +1306,14 @@ class BiographyController extends Controller
             }
         }
 
+        $redirectRoute = $data['status'] === 'draft' ? 'biographies.drafts' : 'biographies.index';
+        $message = $data['status'] === 'draft' 
+            ? 'Biography saved as draft successfully.' 
+            : 'Biography updated and submitted for review successfully.';
+
         return redirect()
-            ->route('biographies.show', $biography->slug)
-            ->with('success', 'Biography updated successfully!');
+            ->route($redirectRoute)
+            ->with('success', $message);
     }
 
     /**
@@ -1262,5 +1336,16 @@ class BiographyController extends Controller
         return redirect()
             ->route('biographies.index')
             ->with('success', 'Biography deleted successfully!');
+    }
+
+    public function drafts()
+    {
+        $drafts = \App\Models\DraftBiography::where('created_by', auth()->id())
+            ->latest()
+            ->paginate(10);
+
+        return inertia('Biographies/Drafts', [
+            'drafts' => $drafts,
+        ]);
     }
 }

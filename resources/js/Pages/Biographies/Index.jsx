@@ -55,12 +55,20 @@ export default function Index({ biographies, filters, states }) {
                                 <h1 className="text-2xl font-bold mb-6 ">
                                     Biographies
                                 </h1>
-                                <Link
-                                    href={route("biographies.create")}
-                                    className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded"
-                                >
-                                    Add
-                                </Link>
+                                <div className="flex space-x-2">
+                                    <Link
+                                        href={route("biographies.drafts")}
+                                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                                    >
+                                        View Drafts
+                                    </Link>
+                                    <Link
+                                        href={route("biographies.create")}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                                    >
+                                        + New Biography
+                                    </Link>
+                                </div>
                             </div>
 
                             {/* Search & Filter */}

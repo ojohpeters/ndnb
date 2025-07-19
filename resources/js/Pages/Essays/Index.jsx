@@ -29,13 +29,21 @@ export default function Index({ essays, filters, years }) {
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="max-w-5xl mx-auto p-6">
                             <div className="flex justify-between items-center mb-6">
-                                <h1 className="text-2xl font-bold mb-6">Essays</h1>
-                                <Link
-                                    href={route("essays.create")}
-                                    className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded"
-                                >
-                                    Add
-                                </Link>
+                                <h1 className="text-2xl font-bold mb-6">Published Essays</h1>
+                                <div className="space-x-2">
+                                    <Link
+                                        href={route("essays.drafts")}
+                                        className="bg-gray-100 text-gray-800 px-4 py-2 rounded"
+                                    >
+                                        View Drafts
+                                    </Link>
+                                    <Link
+                                        href={route("essays.create")}
+                                        className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded"
+                                    >
+                                        Add New
+                                    </Link>
+                                </div>
                             </div>
 
                             {/* Search & Filter */}

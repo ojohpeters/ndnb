@@ -10,6 +10,7 @@ export default function Edit({ essay, projects }) {
         author: essay.author || "",
         date_published: essay.date_published || "",
         project_id: essay.project_id || "",
+        status: essay.status || "draft",
     });
 
     const handleChange = (e) => {
@@ -21,11 +22,13 @@ export default function Edit({ essay, projects }) {
         setData("content", value);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e, status = 'draft') => {
         e.preventDefault();
+        setData('status', status);
         post(route("essays.update", essay.slug), {
             method: "post",
             _method: "put",
+            preserveScroll: true,
         });
     };
 
@@ -52,7 +55,7 @@ export default function Edit({ essay, projects }) {
                                     Back
                                 </Link>
                             </div>
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={(e) => handleSubmit(e)} className="space-y-4">
                                 {/* Title */}
                                 <div>
                                     <label className="block font-medium">Title *</label>
@@ -132,15 +135,25 @@ export default function Edit({ essay, projects }) {
                                         <div className="text-red-600 text-sm">{errors.project_id}</div>
                                     )}
                                 </div>
-                                
+
                                 {/* Submit */}
-                                <div>
+                                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
                                     <button
-                                        type="submit"
+                                        type="button"
+                                        onClick={(e) => handleSubmit(e, 'draft')}
                                         disabled={processing}
-                                        className="bg-indigo-600 text-white px-6 py-2 rounded"
+                                        className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
                                     >
-                                        {processing ? "Saving..." : "Update"}
+                                        {processing ? "Saving..." : "Save as Draft"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleSubmit(e, 'submitted')}
+                                        disabled={processing}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
+                                    >
+                                        {processing ? "Updating..." : "Update & Submit"}
                                     </button>
                                 </div>
                             </form>

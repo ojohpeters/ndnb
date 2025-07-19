@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -14,7 +13,7 @@ class EditorDashboardController extends Controller
 {
     public function index()
     {
-        $biographies = Biography::with('user')
+        $biographies = Biography::with('creator')
             ->where('status', 'submitted')
             ->orWhere('status', 'returned')
             ->latest()
@@ -27,8 +26,8 @@ class EditorDashboardController extends Controller
 
     public function show(Biography $biography)
     {
-        $biography->load('user');
-        
+        $biography->load('creator');
+
         return Inertia::render('Editor/Show', [
             'biography' => $biography
         ]);
@@ -36,8 +35,8 @@ class EditorDashboardController extends Controller
 
     public function preview(Biography $biography)
     {
-        $biography->load('user');
-        
+        $biography->load('creator');
+
         return Inertia::render('Editor/Preview', [
             'biography' => $biography
         ]);

@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -12,7 +11,7 @@ class EditorInChiefDashboardController extends Controller
 {
     public function index()
     {
-        $biographies = Biography::with('user')
+        $biographies = Biography::with('creator')
             ->where('status', 'editor_review')
             ->latest()
             ->paginate(10);
@@ -24,7 +23,7 @@ class EditorInChiefDashboardController extends Controller
 
     public function show(Biography $biography)
     {
-        $biography->load('user');
+        $biography->load('creator');
         
         return Inertia::render('EditorInChief/Show', [
             'biography' => $biography

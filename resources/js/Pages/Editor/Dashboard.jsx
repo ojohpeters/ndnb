@@ -1,4 +1,5 @@
 
+
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { useState } from "react";
@@ -45,23 +46,92 @@ export default function Dashboard({ biographies }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-green-800">
+                <h2 className="text-lg sm:text-xl font-semibold leading-tight text-green-800">
                     Editors Approval Dashboard (EAD)
                 </h2>
             }
         >
             <Head title="Editor Dashboard" />
 
-            <div className="min-h-screen bg-gradient-to-br from-green-50 to-white py-8">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-white py-4 sm:py-8">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="bg-white shadow-lg rounded-lg border-t-4 border-green-600 overflow-hidden">
-                        <div className="bg-green-100 px-6 py-4 border-b border-green-200">
-                            <h3 className="text-lg font-semibold text-green-800">
+                        <div className="bg-green-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-green-200">
+                            <h3 className="text-base sm:text-lg font-semibold text-green-800">
                                 Submitted Biographies Awaiting Review
                             </h3>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Mobile Card View */}
+                        <div className="block lg:hidden">
+                            <div className="space-y-3 sm:space-y-4 p-4">
+                                {biographies.data.map((biography) => (
+                                    <div key={biography.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                        <div className="flex flex-col space-y-3">
+                                            <div>
+                                                <h4 className="font-medium text-gray-900 text-sm sm:text-base">
+                                                    {biography.full_name}
+                                                </h4>
+                                                <p className="text-xs sm:text-sm text-gray-600">
+                                                    Author: {biography.creator?.name || 'N/A'}
+                                                </p>
+                                                <p className="text-xs sm:text-sm text-gray-600">
+                                                    Contributor: {biography.creator?.first_name} {biography.creator?.last_name}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between">
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(biography.status)}`}>
+                                                    {biography.status.replace('_', ' ').toUpperCase()}
+                                                </span>
+                                                <span className="text-xs text-gray-500">
+                                                    {biography.submitted_at ? new Date(biography.submitted_at).toLocaleDateString() : 'N/A'}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Link
+                                                    href={route('editor.preview', biography.id)}
+                                                    className="text-center text-blue-600 hover:text-blue-900 bg-blue-100 px-2 py-1 rounded text-xs"
+                                                >
+                                                    Preview
+                                                </Link>
+                                                <Link
+                                                    href={route('editor.show', biography.id)}
+                                                    className="text-center text-green-600 hover:text-green-900 bg-green-100 px-2 py-1 rounded text-xs"
+                                                >
+                                                    Edit
+                                                </Link>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <button
+                                                    onClick={() => handleAction(biography, 'approve')}
+                                                    className="text-green-600 hover:text-green-900 bg-green-100 px-2 py-1 rounded text-xs"
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleAction(biography, 'redraft')}
+                                                    className="text-yellow-600 hover:text-yellow-900 bg-yellow-100 px-2 py-1 rounded text-xs"
+                                                >
+                                                    ReDraft
+                                                </button>
+                                                <button
+                                                    onClick={() => handleAction(biography, 'decline')}
+                                                    className="text-red-600 hover:text-red-900 bg-red-100 px-2 py-1 rounded text-xs"
+                                                >
+                                                    Decline
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden lg:block overflow-x-auto">
                             <table className="min-w-full divide-y divide-green-200">
                                 <thead className="bg-green-50">
                                     <tr>
@@ -95,12 +165,12 @@ export default function Dashboard({ biographies }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">
-                                                    {biography.written_by || 'N/A'}
+                                                    {biography.creator?.name || 'N/A'}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">
-                                                    {biography.user?.first_name} {biography.user?.last_name}
+                                                    {biography.creator?.first_name} {biography.creator?.last_name}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -160,9 +230,9 @@ export default function Dashboard({ biographies }) {
 
             {/* Modal for actions */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                        <h3 className="text-lg font-semibold mb-4 text-green-800">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md mx-4">
+                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-green-800">
                             {modalType === 'approve' ? 'Approve Biography' : 
                              modalType === 'redraft' ? 'Request Redraft' : 'Decline Biography'}
                         </h3>
@@ -178,25 +248,25 @@ export default function Dashboard({ biographies }) {
                                         setData('reason', e.target.value) : 
                                         setData('notes', e.target.value)
                                     }
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm sm:text-base"
                                     rows="4"
                                     required={modalType === 'decline' || modalType === 'redraft'}
                                     placeholder={modalType === 'decline' ? 'Please provide a reason for declining this biography...' : 'Add notes for the contributor...'}
                                 />
                             </div>
                             
-                            <div className="flex justify-end space-x-3">
+                            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
+                                    className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 text-sm sm:text-base"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className={`px-4 py-2 rounded text-white ${
+                                    className={`px-4 py-2 rounded text-white text-sm sm:text-base ${
                                         modalType === 'approve' ? 'bg-green-600 hover:bg-green-700' :
                                         modalType === 'redraft' ? 'bg-yellow-600 hover:bg-yellow-700' :
                                         'bg-red-600 hover:bg-red-700'
@@ -214,3 +284,4 @@ export default function Dashboard({ biographies }) {
         </AuthenticatedLayout>
     );
 }
+

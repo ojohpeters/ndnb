@@ -22,7 +22,11 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
+        "@uiw/react-md-editor": "^4.0.8",
+        "react-markdown": "^10.1.0",
         "react-quill": "^2.0.0",
-        "react-select": "^5.10.1"
+        "react-select": "^5.10.1",
+        "rehype-raw": "^7.0.0",
+        "remark-gfm": "^4.0.1"
     }
 }

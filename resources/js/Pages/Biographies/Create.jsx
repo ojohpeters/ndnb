@@ -1,126 +1,423 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, useForm } from "@inertiajs/react";
 import { useState } from "react";
+import Select from "react-select";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
+import MDEditor from "@uiw/react-md-editor";
+import "@uiw/react-md-editor/markdown-editor.css";
 
-export default function Create({ states_and_lgas = [], regions = {}, relatedOptions = [] }) {
+export default function Create({
+    states_and_lgas = [],
+    regions = [],
+    relatedOptions = [],
+}) {
+    const [showPreview, setShowPreview] = useState(false);
     const { data, setData, post, processing, errors } = useForm({
         full_name: "",
-        maiden_name: "",
-        birth_year: "",
-        death_year: "",
+        title: "",
         date_of_birth: "",
         date_of_death: "",
         place_of_birth: "",
         place_of_death: "",
+        cause_of_death: "",
         state_of_origin: "",
-        local_government_area: "",
-        ethnicity: "",
+        lga: "",
+        ethnic_group: "",
         religion: "",
-        occupation: "",
-        biography_text: "",
-        written_by: "",
+        language: "",
+        region: "",
+        biography: "",
         how_to_cite: "",
         references: "",
         status: "draft",
-        education: [{ institution_name: "", qualification: "", year: "" }],
-        occupations: [{ title: "", organization: "", start_year: "", end_year: "" }],
-        related_entries: []
+        related_entries: [],
+        education: [
+            {
+                institution_name: "",
+                location: "",
+                notes: "",
+                start_date: "",
+                end_date: "",
+            },
+        ],
+        occupations: [
+            {
+                title: "",
+                description: "",
+                start_date: "",
+                end_date: "",
+            },
+        ],
     });
 
-    const [previewMode, setPreviewMode] = useState(false);
+    const [currentLgas, setCurrentLgas] = useState([]);
 
-    // Find LGAs for selected state
-    const selectedState = states_and_lgas.find(
-        (s) => s.name === data.state_of_origin
-    );
-    const lgas = selectedState ? selectedState.lgas : [];
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setData(name, value);
-        if (name === "state_of_origin") {
-            setData("local_government_area", "");
-        }
+    const handleStateChange = (selectedState) => {
+        setData("state_of_origin", selectedState);
+        const stateData = states_and_lgas.find((s) => s.name === selectedState);
+        setCurrentLgas(stateData ? stateData.lgas : []);
+        setData("lga", "");
     };
 
-    const handleSubmit = (e, status = 'draft') => {
+    const handleSubmit = (e, status = "draft") => {
         e.preventDefault();
-        setData('status', status);
+        const formData = { ...data, status };
         post(route("biographies.store"), {
-            preserveScroll: true,
+            data: formData,
+            onSuccess: () => {
+                // Handle success
+            },
         });
     };
 
     const handlePreview = () => {
-        setPreviewMode(!previewMode);
+        setShowPreview(true);
     };
 
+    const handleSaveAsDraft = (e) => {
+        e.preventDefault();
+        const formData = { ...data, status: "draft" };
+        post(route("biographies.store"), {
+            data: formData,
+            onSuccess: () => {
+                // Handle success
+            },
+        });
+    };
+
+    const handleSubmitForReview = (e) => {
+        e.preventDefault();
+        const formData = { ...data, status: "submitted" };
+        post(route("biographies.store"), {
+            data: formData,
+            onSuccess: () => {
+                // Handle success
+            },
+        });
+    };
+
+    // Education handlers
     const addEducation = () => {
-        setData('education', [...data.education, { institution_name: "", qualification: "", year: "" }]);
+        setData("education", [
+            ...data.education,
+            {
+                institution_name: "",
+                location: "",
+                notes: "",
+                start_date: "",
+                end_date: "",
+            },
+        ]);
     };
 
     const removeEducation = (index) => {
         const newEducation = data.education.filter((_, i) => i !== index);
-        setData('education', newEducation);
+        setData("education", newEducation);
     };
 
     const updateEducation = (index, field, value) => {
         const newEducation = [...data.education];
         newEducation[index][field] = value;
-        setData('education', newEducation);
+        setData("education", newEducation);
     };
 
+    // Occupation handlers
     const addOccupation = () => {
-        setData('occupations', [...data.occupations, { title: "", organization: "", start_year: "", end_year: "" }]);
+        setData("occupations", [
+            ...data.occupations,
+            {
+                title: "",
+                description: "",
+                start_date: "",
+                end_date: "",
+            },
+        ]);
     };
 
     const removeOccupation = (index) => {
         const newOccupations = data.occupations.filter((_, i) => i !== index);
-        setData('occupations', newOccupations);
+        setData("occupations", newOccupations);
     };
 
     const updateOccupation = (index, field, value) => {
         const newOccupations = [...data.occupations];
         newOccupations[index][field] = value;
-        setData('occupations', newOccupations);
+        setData("occupations", newOccupations);
     };
 
-    if (previewMode) {
+    if (showPreview) {
         return (
             <AuthenticatedLayout
                 header={
-                    <h2 className="text-xl font-semibold leading-tight text-green-800">
+                    <h2 className="text-lg sm:text-xl font-semibold leading-tight text-green-800">
                         Biography Preview
                     </h2>
                 }
             >
                 <Head title="Biography Preview" />
-                <div className="min-h-screen bg-gradient-to-br from-green-50 to-white py-8">
+                <div className="py-4 sm:py-8 lg:py-12 bg-green-50 min-h-screen">
                     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-                        <div className="bg-white shadow-lg rounded-lg border-t-4 border-green-600 overflow-hidden">
-                            <div className="bg-green-100 px-6 py-4 border-b border-green-200">
-                                <div className="flex justify-between items-center">
-                                    <h1 className="text-2xl font-bold text-green-800">Preview: {data.full_name}</h1>
+                        <div className="bg-white shadow-lg sm:rounded-lg overflow-hidden border border-green-200">
+                            <div className="bg-green-700 px-4 sm:px-6 py-3 sm:py-4">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                                    <h1 className="text-xl sm:text-2xl font-bold text-white">
+                                        Biography Preview
+                                    </h1>
                                     <button
-                                        onClick={handlePreview}
-                                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                                        onClick={() => setShowPreview(false)}
+                                        className="bg-white text-green-700 px-3 sm:px-4 py-2 rounded hover:bg-green-50 transition-colors text-sm sm:text-base"
                                     >
                                         ← Back to Edit
                                     </button>
                                 </div>
                             </div>
-                            <div className="p-6">
-                                <div className="prose max-w-none">
-                                    <h2 className="text-green-800">{data.full_name}</h2>
-                                    {data.maiden_name && <p><strong>Maiden Name:</strong> {data.maiden_name}</p>}
-                                    {data.date_of_birth && <p><strong>Born:</strong> {data.date_of_birth}</p>}
-                                    {data.date_of_death && <p><strong>Died:</strong> {data.date_of_death}</p>}
-                                    {data.place_of_birth && <p><strong>Place of Birth:</strong> {data.place_of_birth}</p>}
-                                    {data.state_of_origin && <p><strong>State of Origin:</strong> {data.state_of_origin}</p>}
-                                    <div className="mt-6">
-                                        <h3 className="text-green-700">Biography</h3>
-                                        <div dangerouslySetInnerHTML={{ __html: data.biography_text }} />
+
+                            <div className="p-4 sm:p-6 lg:p-8">
+                                <div className="space-y-4 sm:space-y-6">
+                                    <div>
+                                        <h2 className="text-2xl sm:text-3xl font-bold text-green-800 mb-2">
+                                            {data.full_name}
+                                        </h2>
+                                        {data.title && (
+                                            <p className="text-lg sm:text-xl text-green-600 font-medium">
+                                                {data.title}
+                                            </p>
+                                        )}
                                     </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 bg-green-50 p-4 sm:p-6 rounded-lg">
+                                        {data.date_of_birth && (
+                                            <div>
+                                                <h3 className="font-semibold text-green-800">
+                                                    Date of Birth:
+                                                </h3>
+                                                <p className="text-gray-700">
+                                                    {data.date_of_birth}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {data.date_of_death && (
+                                            <div>
+                                                <h3 className="font-semibold text-green-800">
+                                                    Date of Death:
+                                                </h3>
+                                                <p className="text-gray-700">
+                                                    {data.date_of_death}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {data.place_of_birth && (
+                                            <div>
+                                                <h3 className="font-semibold text-green-800">
+                                                    Place of Birth:
+                                                </h3>
+                                                <p className="text-gray-700">
+                                                    {data.place_of_birth}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {data.state_of_origin && (
+                                            <div>
+                                                <h3 className="font-semibold text-green-800">
+                                                    State of Origin:
+                                                </h3>
+                                                <p className="text-gray-700">
+                                                    {data.state_of_origin}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {data.religion && (
+                                            <div>
+                                                <h3 className="font-semibold text-green-800">
+                                                    Religion:
+                                                </h3>
+                                                <p className="text-gray-700">
+                                                    {data.religion}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {data.ethnic_group && (
+                                            <div>
+                                                <h3 className="font-semibold text-green-800">
+                                                    Ethnic Group:
+                                                </h3>
+                                                <p className="text-gray-700">
+                                                    {data.ethnic_group}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {data.biography && (
+                                        <div>
+                                            <h3 className="text-lg sm:text-xl font-semibold text-green-800 mb-3">
+                                                Biography
+                                            </h3>
+                                            <div className="prose prose-green max-w-none prose-sm sm:prose-base">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
+                                                    rehypePlugins={[rehypeRaw]}
+                                                >
+                                                    {data.biography}
+                                                </ReactMarkdown>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {data.education.some(
+                                        (edu) => edu.institution_name,
+                                    ) && (
+                                        <div>
+                                            <h3 className="text-lg sm:text-xl font-semibold text-green-800 mb-3">
+                                                Education
+                                            </h3>
+                                            <div className="space-y-3 sm:space-y-4">
+                                                {data.education.map(
+                                                    (edu, index) =>
+                                                        edu.institution_name && (
+                                                            <div
+                                                                key={index}
+                                                                className="p-3 sm:p-4 bg-gray-50 rounded"
+                                                            >
+                                                                <p className="font-medium">
+                                                                    {
+                                                                        edu.institution_name
+                                                                    }
+                                                                </p>
+                                                                {edu.location && (
+                                                                    <p className="text-gray-600 text-sm sm:text-base">
+                                                                        {
+                                                                            edu.location
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                                {edu.start_date &&
+                                                                    edu.end_date && (
+                                                                        <p className="text-gray-600 text-sm sm:text-base">
+                                                                            {
+                                                                                edu.start_date
+                                                                            }{" "}
+                                                                            -{" "}
+                                                                            {
+                                                                                edu.end_date
+                                                                            }
+                                                                        </p>
+                                                                    )}
+                                                                {edu.notes && (
+                                                                    <div className="text-gray-700 mt-2 prose prose-sm max-w-none">
+                                                                        <ReactMarkdown
+                                                                            remarkPlugins={[
+                                                                                remarkGfm,
+                                                                            ]}
+                                                                            rehypePlugins={[
+                                                                                rehypeRaw,
+                                                                            ]}
+                                                                        >
+                                                                            {
+                                                                                edu.notes
+                                                                            }
+                                                                        </ReactMarkdown>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ),
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {data.occupations.some(
+                                        (occ) => occ.title,
+                                    ) && (
+                                        <div>
+                                            <h3 className="text-lg sm:text-xl font-semibold text-green-800 mb-3">
+                                                Occupations
+                                            </h3>
+                                            <div className="space-y-3 sm:space-y-4">
+                                                {data.occupations.map(
+                                                    (occ, index) =>
+                                                        occ.title && (
+                                                            <div
+                                                                key={index}
+                                                                className="p-3 sm:p-4 bg-gray-50 rounded"
+                                                            >
+                                                                <p className="font-medium">
+                                                                    {occ.title}
+                                                                </p>
+                                                                {occ.description && (
+                                                                    <div className="text-gray-700 mt-2 prose prose-sm max-w-none">
+                                                                        <ReactMarkdown
+                                                                            remarkPlugins={[
+                                                                                remarkGfm,
+                                                                            ]}
+                                                                            rehypePlugins={[
+                                                                                rehypeRaw,
+                                                                            ]}
+                                                                        >
+                                                                            {
+                                                                                occ.description
+                                                                            }
+                                                                        </ReactMarkdown>
+                                                                    </div>
+                                                                )}
+                                                                {occ.start_date &&
+                                                                    occ.end_date && (
+                                                                        <p className="text-gray-600 text-sm sm:text-base">
+                                                                            {
+                                                                                occ.start_date
+                                                                            }{" "}
+                                                                            -{" "}
+                                                                            {
+                                                                                occ.end_date
+                                                                            }
+                                                                        </p>
+                                                                    )}
+                                                            </div>
+                                                        ),
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {data.how_to_cite && (
+                                        <div>
+                                            <h3 className="text-lg sm:text-xl font-semibold text-green-800 mb-3">
+                                                How to Cite
+                                            </h3>
+                                            <div className="bg-gray-50 p-3 sm:p-4 rounded border-l-4 border-green-500">
+                                                <div className="prose prose-green max-w-none prose-sm sm:prose-base">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[
+                                                            remarkGfm,
+                                                        ]}
+                                                        rehypePlugins={[
+                                                            rehypeRaw,
+                                                        ]}
+                                                    >
+                                                        {data.how_to_cite}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {data.references && (
+                                        <div>
+                                            <h3 className="text-lg sm:text-xl font-semibold text-green-800 mb-3">
+                                                References
+                                            </h3>
+                                            <div className="prose prose-green max-w-none prose-sm sm:prose-base">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkGfm]}
+                                                    rehypePlugins={[rehypeRaw]}
+                                                >
+                                                    {data.references}
+                                                </ReactMarkdown>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -133,98 +430,164 @@ export default function Create({ states_and_lgas = [], regions = {}, relatedOpti
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-green-800">
+                <h2 className="text-lg sm:text-xl font-semibold leading-tight text-green-800">
                     Create Biography
                 </h2>
             }
         >
             <Head title="Create Biography" />
-            <div className="min-h-screen bg-gradient-to-br from-green-50 to-white py-8">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-lg rounded-lg border-t-4 border-green-600 overflow-hidden">
-                        <div className="bg-green-100 px-6 py-4 border-b border-green-200">
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                <h1 className="text-2xl font-bold text-green-800">Create New Biography</h1>
-                                <Link
-                                    href={route("biographies.index")}
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-                                >
-                                    ← Back to List
-                                </Link>
-                            </div>
+
+            <div className="py-4 sm:py-8 lg:py-12 bg-green-50 min-h-screen">
+                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                    <div className="bg-white shadow-lg sm:rounded-lg overflow-hidden border border-green-200">
+                        <div className="bg-green-700 px-4 sm:px-6 py-3 sm:py-4">
+                            <h1 className="text-xl sm:text-2xl font-bold text-white">
+                                Create New Biography
+                            </h1>
                         </div>
 
-                        <div className="p-6">
-                            <form className="space-y-6">
-                                {/* Basic Information */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <form className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+                            {/* Basic Information Section */}
+                            <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
+                                <h2 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4">
+                                    Basic Information
+                                </h2>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
                                             Full Name *
                                         </label>
                                         <input
                                             type="text"
-                                            name="full_name"
                                             value={data.full_name}
-                                            onChange={handleChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            onChange={(e) =>
+                                                setData(
+                                                    "full_name",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                                             required
                                         />
-                                        {errors.full_name && <div className="text-red-500 text-sm mt-1">{errors.full_name}</div>}
+                                        {errors.full_name && (
+                                            <p className="mt-1 text-sm text-red-600">
+                                                {errors.full_name}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Maiden Name
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            Title
                                         </label>
                                         <input
                                             type="text"
-                                            name="maiden_name"
-                                            value={data.maiden_name}
-                                            onChange={handleChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            value={data.title}
+                                            onChange={(e) =>
+                                                setData("title", e.target.value)
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                            placeholder="e.g., Professor, Chief, Dr."
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
                                             Date of Birth
                                         </label>
                                         <input
                                             type="date"
-                                            name="date_of_birth"
                                             value={data.date_of_birth}
-                                            onChange={handleChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            onChange={(e) =>
+                                                setData(
+                                                    "date_of_birth",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
                                             Date of Death
                                         </label>
                                         <input
                                             type="date"
-                                            name="date_of_death"
                                             value={data.date_of_death}
-                                            onChange={handleChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            onChange={(e) =>
+                                                setData(
+                                                    "date_of_death",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            Place of Birth
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.place_of_birth}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "place_of_birth",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            Place of Death
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.place_of_death}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "place_of_death",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Location & Background */}
+                            <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
+                                <h2 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4">
+                                    Location & Background
+                                </h2>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
                                             State of Origin
                                         </label>
                                         <select
-                                            name="state_of_origin"
                                             value={data.state_of_origin}
-                                            onChange={handleChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            onChange={(e) =>
+                                                handleStateChange(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                                         >
-                                            <option value="">Select State</option>
+                                            <option value="">
+                                                Select State
+                                            </option>
                                             {states_and_lgas.map((state) => (
-                                                <option key={state.code} value={state.name}>
+                                                <option
+                                                    key={state.name}
+                                                    value={state.name}
+                                                >
                                                     {state.name}
                                                 </option>
                                             ))}
@@ -232,73 +595,512 @@ export default function Create({ states_and_lgas = [], regions = {}, relatedOpti
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
                                             Local Government Area
                                         </label>
                                         <select
-                                            name="local_government_area"
-                                            value={data.local_government_area}
-                                            onChange={handleChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            value={data.lga}
+                                            onChange={(e) =>
+                                                setData("lga", e.target.value)
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
                                             disabled={!data.state_of_origin}
                                         >
                                             <option value="">Select LGA</option>
-                                            {lgas.map((lga, index) => (
-                                                <option key={index} value={lga}>
+                                            {currentLgas.map((lga) => (
+                                                <option key={lga} value={lga}>
                                                     {lga}
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
-                                </div>
 
-                                {/* Biography Text */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            Region
+                                        </label>
+                                        <select
+                                            value={data.region}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "region",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                        >
+                                            <option value="">
+                                                Select Region
+                                            </option>
+                                            {Object.keys(regions).map(
+                                                (region) => (
+                                                    <option
+                                                        key={region}
+                                                        value={region}
+                                                    >
+                                                        {region}
+                                                    </option>
+                                                ),
+                                            )}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            Ethnic Group
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.ethnic_group}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "ethnic_group",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            Religion
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.religion}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "religion",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            Language
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.language}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "language",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Education Section */}
+                            <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-2">
+                                    <h2 className="text-base sm:text-lg font-semibold text-green-800">
+                                        Education
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        onClick={addEducation}
+                                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 w-full sm:w-auto"
+                                    >
+                                        + Add Education
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    {data.education.map((edu, index) => (
+                                        <div
+                                            key={index}
+                                            className="border border-green-200 p-3 sm:p-4 rounded-lg bg-white"
+                                        >
+                                            <div className="flex justify-between items-start mb-3">
+                                                <h3 className="font-medium text-green-800 text-sm sm:text-base">
+                                                    Education #{index + 1}
+                                                </h3>
+                                                {data.education.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            removeEducation(
+                                                                index,
+                                                            )
+                                                        }
+                                                        className="text-red-600 hover:text-red-800 text-sm"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                                <div className="sm:col-span-2">
+                                                    <label className="block text-sm font-medium text-green-700 mb-1">
+                                                        Institution Name
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={
+                                                            edu.institution_name
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateEducation(
+                                                                index,
+                                                                "institution_name",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-green-700 mb-1">
+                                                        Location
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={edu.location}
+                                                        onChange={(e) =>
+                                                            updateEducation(
+                                                                index,
+                                                                "location",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-green-700 mb-1">
+                                                        Start Date
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        value={edu.start_date}
+                                                        onChange={(e) =>
+                                                            updateEducation(
+                                                                index,
+                                                                "start_date",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-green-700 mb-1">
+                                                        End Date
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        value={edu.end_date}
+                                                        onChange={(e) =>
+                                                            updateEducation(
+                                                                index,
+                                                                "end_date",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 sm:mt-4">
+                                                <label className="block text-sm font-medium text-green-700 mb-1">
+                                                    Notes
+                                                </label>
+                                                <div data-color-mode="light">
+                                                    <MDEditor
+                                                        value={edu.notes}
+                                                        onChange={(val) =>
+                                                            updateEducation(
+                                                                index,
+                                                                "notes",
+                                                                val || "",
+                                                            )
+                                                        }
+                                                        preview="edit"
+                                                        hideToolbar={false}
+                                                        visibleDragBar={false}
+                                                        height={150}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Occupations Section */}
+                            <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-2">
+                                    <h2 className="text-base sm:text-lg font-semibold text-green-800">
+                                        Occupations
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        onClick={addOccupation}
+                                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 w-full sm:w-auto"
+                                    >
+                                        + Add Occupation
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    {data.occupations.map((occ, index) => (
+                                        <div
+                                            key={index}
+                                            className="border border-green-200 p-3 sm:p-4 rounded-lg bg-white"
+                                        >
+                                            <div className="flex justify-between items-start mb-3">
+                                                <h3 className="font-medium text-green-800 text-sm sm:text-base">
+                                                    Occupation #{index + 1}
+                                                </h3>
+                                                {data.occupations.length >
+                                                    1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            removeOccupation(
+                                                                index,
+                                                            )
+                                                        }
+                                                        className="text-red-600 hover:text-red-800 text-sm"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                                <div className="sm:col-span-2">
+                                                    <label className="block text-sm font-medium text-green-700 mb-1">
+                                                        Job Title
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={occ.title}
+                                                        onChange={(e) =>
+                                                            updateOccupation(
+                                                                index,
+                                                                "title",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-green-700 mb-1">
+                                                        Start Date
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        value={occ.start_date}
+                                                        onChange={(e) =>
+                                                            updateOccupation(
+                                                                index,
+                                                                "start_date",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-green-700 mb-1">
+                                                        End Date
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        value={occ.end_date}
+                                                        onChange={(e) =>
+                                                            updateOccupation(
+                                                                index,
+                                                                "end_date",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 sm:mt-4">
+                                                <label className="block text-sm font-medium text-green-700 mb-1">
+                                                    Description
+                                                </label>
+                                                <div data-color-mode="light">
+                                                    <MDEditor
+                                                        value={occ.description}
+                                                        onChange={(val) =>
+                                                            updateOccupation(
+                                                                index,
+                                                                "description",
+                                                                val || "",
+                                                            )
+                                                        }
+                                                        preview="edit"
+                                                        hideToolbar={false}
+                                                        visibleDragBar={false}
+                                                        height={200}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Related Entries */}
+                            <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
+                                <h2 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4">
+                                    Related Biographies
+                                </h2>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Biography Text *
+                                    <label className="block text-sm font-medium text-green-700 mb-2">
+                                        Select Related Biographies
                                     </label>
-                                    <textarea
-                                        name="biography_text"
-                                        value={data.biography_text}
-                                        onChange={handleChange}
-                                        rows={10}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        placeholder="Write the biography here..."
-                                        required
+                                    <Select
+                                        isMulti
+                                        options={relatedOptions}
+                                        value={relatedOptions.filter((opt) =>
+                                            data.related_entries.includes(
+                                                opt.value,
+                                            ),
+                                        )}
+                                        onChange={(selected) =>
+                                            setData(
+                                                "related_entries",
+                                                selected.map(
+                                                    (opt) => opt.value,
+                                                ),
+                                            )
+                                        }
+                                        className="basic-multi-select"
+                                        classNamePrefix="select"
+                                        placeholder="Select related biographies..."
                                     />
-                                    {errors.biography_text && <div className="text-red-500 text-sm mt-1">{errors.biography_text}</div>}
                                 </div>
+                            </div>
 
-                                {/* Action Buttons */}
-                                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                            {/* Biography Content */}
+                            <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
+                                <h2 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4">
+                                    Biography Content
+                                </h2>
+                                <div>
+                                    <label className="block text-sm font-medium text-green-700 mb-2">
+                                        Biography * (Rich Text Editor)
+                                    </label>
+                                    <div className="text-xs text-gray-600 mb-2">
+                                        Use the toolbar buttons above for
+                                        formatting: Bold, Italic, Headers,
+                                        Lists, Links, etc.
+                                    </div>
+                                    <div data-color-mode="light">
+                                        <MDEditor
+                                            value={data.biography}
+                                            onChange={(val) =>
+                                                setData("biography", val || "")
+                                            }
+                                            preview="edit"
+                                            hideToolbar={false}
+                                            visibleDragBar={false}
+                                            height={400}
+                                        />
+                                    </div>
+                                    {errors.biography && (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {errors.biography}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Citations & References */}
+                            <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
+                                <h2 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4">
+                                    Citations & References
+                                </h2>
+                                <div className="space-y-4 sm:space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            How to Cite
+                                        </label>
+                                        <div data-color-mode="light">
+                                            <MDEditor
+                                                value={data.how_to_cite}
+                                                onChange={(val) =>
+                                                    setData(
+                                                        "how_to_cite",
+                                                        val || "",
+                                                    )
+                                                }
+                                                preview="edit"
+                                                hideToolbar={false}
+                                                visibleDragBar={false}
+                                                height={200}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-700 mb-2">
+                                            References
+                                        </label>
+                                        <div data-color-mode="light">
+                                            <MDEditor
+                                                value={data.references}
+                                                onChange={(val) =>
+                                                    setData(
+                                                        "references",
+                                                        val || "",
+                                                    )
+                                                }
+                                                preview="edit"
+                                                hideToolbar={false}
+                                                visibleDragBar={false}
+                                                height={300}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col gap-3 pt-4 sm:pt-6 border-t border-green-200">
+                                <button
+                                    type="button"
+                                    onClick={handlePreview}
+                                    className="w-full bg-green-100 text-green-700 py-3 px-4 sm:px-6 rounded-lg hover:bg-green-200 transition-colors font-medium text-sm sm:text-base"
+                                >
+                                    Preview
+                                </button>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button
                                         type="button"
-                                        onClick={handlePreview}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors font-medium"
-                                    >
-                                        Preview
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={(e) => handleSubmit(e, 'draft')}
+                                        onClick={handleSaveAsDraft}
                                         disabled={processing}
-                                        className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
+                                        className="bg-gray-500 text-white py-3 px-4 sm:px-6 rounded-lg hover:bg-gray-600 transition-colors font-medium disabled:opacity-50 text-sm sm:text-base"
                                     >
-                                        {processing ? "Saving..." : "Save as Draft"}
+                                        {processing
+                                            ? "Saving..."
+                                            : "Save as Draft"}
                                     </button>
-
                                     <button
                                         type="button"
-                                        onClick={(e) => handleSubmit(e, 'submitted')}
+                                        onClick={handleSubmitForReview}
                                         disabled={processing}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
+                                        className="bg-green-600 text-white py-3 px-4 sm:px-6 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 text-sm sm:text-base"
                                     >
-                                        {processing ? "Submitting..." : "Submit for Review"}
+                                        {processing
+                                            ? "Submitting..."
+                                            : "Submit for Review"}
                                     </button>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

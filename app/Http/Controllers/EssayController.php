@@ -17,6 +17,7 @@ class EssayController extends Controller
     public function index()
     {
         $essays = Essay::with('project')
+            ->where('status', '!=', 'draft')
             ->latest()
             ->paginate(10)
             ->through(fn($essay) => [
@@ -28,11 +29,13 @@ class EssayController extends Controller
                 'date_published' => $essay->date_published,
             ]);
 
-            $years = Essay::selectRaw("strftime('%Y', date_published) as year")
-            ->distinct()
-            ->whereNotNull('date_published')
-            ->orderBy('year', 'desc')
-            ->pluck('year');
+          $years = Essay::selectRaw("YEAR(date_published) as year")
+    ->distinct()
+    ->whereNotNull('date_published')
+    ->where('status', 'published')
+    ->orderByDesc('year')
+    ->pluck('year');
+
 
         return Inertia::render('Essays/Index', [
             'essays' => $essays,
@@ -41,6 +44,30 @@ class EssayController extends Controller
                 'year' => request('year'),
             ],
             'years' => $years
+        ]);
+    }
+
+    /**
+     * Display drafts listing.
+     */
+    public function drafts()
+    {
+        $drafts = Essay::with('project')
+            ->where('status', 'draft')
+            ->latest()
+            ->paginate(10)
+            ->through(fn($essay) => [
+                'id' => $essay->id,
+                'title' => $essay->title,
+                'slug' => $essay->slug,
+                'author' => $essay->author,
+                'project' => $essay->project ? $essay->project->title : null,
+                'date_published' => $essay->date_published,
+                'updated_at' => $essay->updated_at,
+            ]);
+
+        return Inertia::render('Essays/Drafts', [
+            'drafts' => $drafts,
         ]);
     }
 
@@ -61,14 +88,19 @@ class EssayController extends Controller
      */
     public function store(StoreEssayRequest $request)
     {
-         $validated = $request->validated();
+        $validated = $request->validated();
+        $status = $request->input('action') === 'publish' ? 'published' : 'draft';
 
         $essay = Essay::create([
             ...$validated,
             'slug' => Str::slug($validated['title']) . '-' . uniqid(),
+            'status' => $status,
         ]);
 
-        return redirect()->route('essays.index')->with('success', 'Essay created successfully.');
+        $redirectRoute = $status === 'draft' ? 'essays.drafts' : 'essays.index';
+        $message = $status === 'draft' ? 'Essay saved as draft successfully.' : 'Essay published successfully.';
+
+        return redirect()->route($redirectRoute)->with('success', $message);
     }
 
     /**
@@ -112,14 +144,18 @@ class EssayController extends Controller
     public function update(UpdateEssayRequest $request, Essay $essay)
     {
         $validated = $request->validated();
+        $status = $request->input('action') === 'publish' ? 'published' : 'draft';
 
         $essay->update([
             ...$validated,
-            'slug' => Str::slug($validated['title']) . '-' . uniqid(), // optionally update slug
+            'slug' => Str::slug($validated['title']) . '-' . uniqid(),
+            'status' => $status,
         ]);
 
-        return redirect()->route('essays.index')->with('success', 'Essay updated successfully.');
+        $redirectRoute = $status === 'draft' ? 'essays.drafts' : 'essays.index';
+        $message = $status === 'draft' ? 'Essay saved as draft successfully.' : 'Essay published successfully.';
 
+        return redirect()->route($redirectRoute)->with('success', $message);
     }
 
     /**

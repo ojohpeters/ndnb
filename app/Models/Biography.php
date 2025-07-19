@@ -11,27 +11,30 @@ class Biography extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
+        'created_by',
         'full_name',
         'slug',
         'title',
+        'maiden_name',
+        'birth_year',
+        'death_year',
         'date_of_birth',
         'date_of_death',
         'place_of_birth',
         'place_of_death',
         'cause_of_death',
         'state_of_origin',
-        'lga',
-        'ethnic_group',
+        'local_government_area',
+        'ethnicity',
         'religion',
-        'language',
+        'occupation',
+        'biography_text',
+        'written_by',
         'region',
-        'biography',
         'photo',
-        'created_by',
         'how_to_cite',
         'references',
-        'bibliography',
-        'further_reading',
         'status',
         'editor_notes',
         'submitted_at',
@@ -48,6 +51,11 @@ class Biography extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function creator()
@@ -84,4 +92,5 @@ class Biography extends Model
     {
         return $this->hasMany(Occupation::class);
     }
+    
 }

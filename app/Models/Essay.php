@@ -17,6 +17,8 @@ class Essay extends Model
         'author',
         'date_published',
         'project_id',
+        'status',
+        'submitted_at',
     ];
 
     public function getRouteKeyName(): string

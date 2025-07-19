@@ -21,26 +21,45 @@ class StoreBiographyRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'full_name' => 'required|string|max:255',
-            'maiden_name' => 'nullable|string|max:255',
-            'birth_year' => 'nullable|integer|min:1800|max:' . date('Y'),
-            'death_year' => 'nullable|integer|min:1800|max:' . date('Y') . '|gte:birth_year',
+            'title' => 'nullable|string|max:255',
             'date_of_birth' => 'nullable|date',
             'date_of_death' => 'nullable|date|after_or_equal:date_of_birth',
             'place_of_birth' => 'nullable|string|max:255',
             'place_of_death' => 'nullable|string|max:255',
+            'cause_of_death' => 'nullable|string|max:255',
             'state_of_origin' => 'nullable|string|max:255',
-            'local_government_area' => 'nullable|string|max:255',
-            'ethnicity' => 'nullable|string|max:255',
+            'lga' => 'nullable|string|max:255',
+            'ethnic_group' => 'nullable|string|max:255',
             'religion' => 'nullable|string|max:255',
-            'occupation' => 'nullable|string|max:255',
-            'biography_text' => 'required|string',
-            'written_by' => 'nullable|string|max:255',
+            'language' => 'nullable|string|max:255',
+            'region' => 'nullable|string|max:255',
             'how_to_cite' => 'nullable|string',
             'references' => 'nullable|string',
-            'status' => 'nullable|in:draft,submitted,under_review,copy_editing,editor_review,published,declined,returned',
-            'submitted_at' => 'nullable|date',
+            'status' => 'required|in:draft,submitted',
+            'education' => 'nullable|array',
+            'education.*.institution_name' => 'nullable|string|max:255',
+            'education.*.location' => 'nullable|string|max:255',
+            'education.*.notes' => 'nullable|string',
+            'education.*.start_date' => 'nullable|date',
+            'education.*.end_date' => 'nullable|date',
+            'occupations' => 'nullable|array',
+            'occupations.*.title' => 'nullable|string|max:255',
+            'occupations.*.description' => 'nullable|string',
+            'occupations.*.start_date' => 'nullable|date',
+            'occupations.*.end_date' => 'nullable|date',
+            'related_entries' => 'nullable|array',
+            'related_entries.*' => 'exists:biographies,id',
         ];
+
+        // Make biography required only when submitting for review
+        if ($this->input('status') === 'submitted') {
+            $rules['biography'] = 'required|string';
+        } else {
+            $rules['biography'] = 'nullable|string';
+        }
+
+        return $rules;
     }
 }
