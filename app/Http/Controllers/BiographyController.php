@@ -8,6 +8,7 @@ use App\Models\Occupation;
 use Illuminate\Support\Str;
 use App\Http\Requests\StoreBiographyRequest;
 use App\Http\Requests\UpdateBiographyRequest;
+use App\Services\NotificationService;
 
 class BiographyController extends Controller
 {
@@ -1134,7 +1135,13 @@ class BiographyController extends Controller
             $data['submitted_at'] = now();
         }
 
-        $biography = Biography::create($data);        
+        $biography = Biography::create($data);
+        
+        // Send notification if submitted
+        if ($data['status'] === 'submitted') {
+            NotificationService::notifyBiographySubmitted($biography);
+        }
+        
         $message = $data['status'] === 'draft' 
             ? 'Biography saved as draft successfully.' 
             : 'Biography submitted for review successfully.';

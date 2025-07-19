@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\Biography;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Services\NotificationService;
 
 class EditorInChiefDashboardController extends Controller
 {
@@ -40,7 +41,7 @@ class EditorInChiefDashboardController extends Controller
         ]);
 
         // Send congratulations to contributor
-        // Mail::to($biography->user->email)->send(new EditorNotificationMail($biography, 'published'));
+        NotificationService::notifyBiographyPublished($biography);
 
         return redirect()->back()->with('success', 'Biography has been published!');
     }

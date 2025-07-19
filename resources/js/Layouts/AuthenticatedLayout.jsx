@@ -1,12 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
+import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
 import { Link, usePage, router } from "@inertiajs/react";
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        // Fetch unread notifications count
+        fetch(route('notifications.unread-count'))
+            .then(response => response.json())
+            .then(data => setUnreadCount(data.count))
+            .catch(error => console.error('Error fetching notifications:', error));
+    }, []);
+
+    const NotificationBell = () => (
+        <Link
+            href={route('notifications.index')}
+            className="relative p-2 text-gray-500 hover:text-green-600 transition-colors duration-200"
+        >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-4.8-5.4c-.46-.52-.7-1.2-.7-1.9V6a5 5 0 00-10 0v3.7c0 .7-.24 1.37-.7 1.9L0 17h5m10 0v1a3 3 0 01-6 0v-1m6 0H9" />
+            </svg>
+            {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+            )}
+        </Link>
+    );
 
     const navLinks = [
         { name: "Dashboard", routeName: "dashboard" },
@@ -93,7 +120,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     onSubmit={handleLogout}
                                     className="w-full"
                                 >
-                                    
+
                                     <button
                                         type="submit"
                                         className="text-sm text-red-600 hover:text-red-800 py-1 text-left w-full"
@@ -125,13 +152,51 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {/* Page content */}
             <div className="flex-1 flex flex-col">
-                {header && (
-                    <header className="bg-white shadow">
-                        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                            {header}
+                <header className="bg-white shadow">
+                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
+                        {header}
+                        <div className="flex items-center space-x-4">
+                            <NotificationBell />
+                            <div className="relative">
+                                <Dropdown>
+                                    <Dropdown.Trigger>
+                                        <span className="inline-flex rounded-md">
+                                            <button
+                                                type="button"
+                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                            >
+                                                {user.name}
+
+                                                <svg
+                                                    className="-me-0.5 ms-2 h-4 w-4"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20"
+                                                    fill="currentColor"
+                                                >
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </Dropdown.Trigger>
+
+                                    <Dropdown.Content>
+                                        <Dropdown.Link href={route('profile.edit')}>
+                                            Profile
+                                        </Dropdown.Link>
+                                        <Dropdown.Link href={route('logout')} method="post" as="button">
+                                            Log Out
+                                        </Dropdown.Link>
+                                    </Dropdown.Content>
+                                </Dropdown>
+                            </div>
                         </div>
-                    </header>
-                )}
+                    </div>
+                </header>
+
                 <main>{children}</main>
             </div>
         </div>

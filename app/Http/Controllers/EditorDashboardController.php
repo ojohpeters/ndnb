@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EditorNotificationMail;
+use App\Services\NotificationService;
 
 class EditorDashboardController extends Controller
 {
@@ -51,8 +52,8 @@ class EditorDashboardController extends Controller
             'editor_notes' => $request->notes
         ]);
 
-        // Send notification to copy editors
-        // Mail::to('copyeditors@ndnb.org')->send(new EditorNotificationMail($biography, 'approved_for_copy_editing'));
+        // Send notification to contributor
+        NotificationService::notifyBiographyApproved($biography, $request->notes);
 
         return redirect()->back()->with('success', 'Biography approved and sent to copy editors.');
     }
@@ -70,7 +71,7 @@ class EditorDashboardController extends Controller
         ]);
 
         // Send notification to contributor
-        // Mail::to($biography->user->email)->send(new EditorNotificationMail($biography, 'redraft'));
+        NotificationService::notifyBiographyReturned($biography, $request->notes);
 
         return redirect()->back()->with('success', 'Biography returned to contributor for revisions.');
     }
@@ -88,7 +89,7 @@ class EditorDashboardController extends Controller
         ]);
 
         // Send notification to contributor
-        // Mail::to($biography->user->email)->send(new EditorNotificationMail($biography, 'declined'));
+        NotificationService::notifyBiographyDeclined($biography, $request->reason);
 
         return redirect()->back()->with('success', 'Biography has been declined.');
     }

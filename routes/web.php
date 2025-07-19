@@ -124,6 +124,18 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::post('/biography/{biography}/return', [App\Http\Controllers\EditorInChiefDashboardController::class, 'returnToEditor'])->name('return');
         Route::post('/biography/{biography}/decline', [App\Http\Controllers\EditorInChiefDashboardController::class, 'decline'])->name('decline');
     });
+
+    Route::resource('biographies', BiographyController::class);
+    Route::resource('essays', EssayController::class);
+    Route::resource('projects', ProjectController::class);
+
+    // Notification routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::post('/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('mark-read');
+        Route::post('/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::get('/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('unread-count');
+    });
 });
 
 Route::get('/biographies', function(Request $request) {

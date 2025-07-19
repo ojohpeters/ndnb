@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\Biography;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Services\NotificationService;
 
 class CopyEditorDashboardController extends Controller
 {
@@ -37,6 +38,9 @@ class CopyEditorDashboardController extends Controller
             'reviewed_by' => auth()->id(),
             'editor_notes' => $request->notes
         ]);
+
+        // Notify Editor-in-Chief
+        NotificationService::notifyCopyEditingComplete($biography);
 
         return redirect()->back()->with('success', 'Biography approved and sent to Editor-in-Chief.');
     }
