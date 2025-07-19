@@ -1127,54 +1127,17 @@ class BiographyController extends Controller
     public function store(StoreBiographyRequest $request)
     {
         $data = $request->validated();
+        $data['user_id'] = auth()->id();
 
-        // Generate slug from full_name
-        $slug = Str::slug($data['full_name']);
-        $originalSlug = $slug;
-        $count = 1;
-        while (Biography::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $count++;
+        // Set submitted_at if status is submitted
+        if ($data['status'] === 'submitted') {
+            $data['submitted_at'] = now();
         }
 
-        // Handle photo upload if present
-        if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('biographies', 'public');
-        }
-
-        $data['slug'] = $slug;
-        $data['created_by'] = $request->user()->id;
-
-        // Remove related_entries, education, occupations from $data before create
-        $relatedEntries = $data['related_entries'] ?? [];
-        unset($data['related_entries']);
-
-        $education = $data['education'] ?? [];
-        unset($data['education']);
-
-        $occupations = $data['occupations'] ?? [];
-        unset($data['occupations']);
-
-        // Create main biography record
-        $biography = Biography::create($data);
-
-        // Sync related entries (self-referencing many-to-many)
-        if (!empty($relatedEntries)) {
-            $biography->relatedBiographies()->sync($relatedEntries);
-        }
-
-        // Store education records (if you have an Education model and table)
-        foreach ($education as $edu) {
-            if (!empty($edu['institution_name'])) {
-                $biography->education()->create($edu);
-            }
-        }
-
-        // Store occupation records (if you have an Occupation model and table)
-        foreach ($occupations as $occ) {
-            if (!empty($occ['title'])) {
-                $biography->occupations()->create($occ);
-            }
-        }
+        $biography = Biography::create($data);        
+        $message = $data['status'] === 'draft' 
+            ? 'Biography saved as draft successfully.' 
+            : 'Biography submitted for review successfully.';
 
         return redirect()
             ->route('biographies.index')

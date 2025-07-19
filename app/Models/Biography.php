@@ -32,6 +32,12 @@ class Biography extends Model
         'references',
         'bibliography',
         'further_reading',
+        'status',
+        'editor_notes',
+        'submitted_at',
+        'approved_at',
+        'published_at',
+        'reviewed_by',
     ];
 
     protected $casts = [

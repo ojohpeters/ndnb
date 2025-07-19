@@ -5,7 +5,10 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import Select from "react-select";
 
-export default function Create({ states_and_lgas = [], regions, relatedOptions = [] }) {
+export default function Create() {
+    const [showPreview, setShowPreview] = useState(false);
+    const [isDraft, setIsDraft] = useState(false);
+
     const { data, setData, post, processing, errors } = useForm({
         name: "",
         occupation: "",
@@ -27,6 +30,7 @@ export default function Create({ states_and_lgas = [], regions, relatedOptions =
         bibliography: [],
         further_reading: "",
         image: null,
+        status: "draft",
     });
 
     const geopoliticalZones = [
@@ -318,28 +322,28 @@ export default function Create({ states_and_lgas = [], regions, relatedOptions =
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                <h2 className="text-xl font-semibold leading-tight text-green-800">
                     Add Biography
                 </h2>
             }
         >
             <Head title="Add Biography" />
 
-            <div className="py-12">
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-white py-8">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="max-w-3xl mx-auto p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h1 className="text-2xl font-bold">
-                                    Add Biography
-                                </h1>
+                    <div className="bg-white shadow-lg rounded-lg border-t-4 border-green-600 overflow-hidden">
+                        <div className="bg-green-100 px-6 py-4 border-b border-green-200">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <h1 className="text-2xl font-bold text-green-800">Create New Biography</h1>
                                 <Link
                                     href={route("biographies.index")}
-                                    className="bg-gray-100 text-gray-800 px-4 py-2 rounded"
+                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
                                 >
-                                    Back
+                                    ← Back to List
                                 </Link>
                             </div>
+                        </div>
+                        <div className="p-6">
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 {/* Name */}
                                 <div>
@@ -702,7 +706,7 @@ export default function Create({ states_and_lgas = [], regions, relatedOptions =
 
                                     {data.bibliography_entries && data.bibliography_entries
                                         .sort((a, b) => {
-                                            // Sort alphabetically by type first, then by title or main identifier
+                                            //                                        // Sort alphabetically by type first, then by title or main identifier
                                             const aTitle = a.fields.title || a.fields.title_of_article || a.fields.title_of_webpage_article || '';
                                             const bTitle = b.fields.title || b.fields.title_of_article || b.fields.title_of_webpage_article || '';
                                             if (a.type !== b.type) {
