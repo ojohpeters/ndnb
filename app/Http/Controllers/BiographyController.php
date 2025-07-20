@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 use App\Http\Requests\StoreBiographyRequest;
 use App\Http\Requests\UpdateBiographyRequest;
 use App\Services\NotificationService;
+use Carbon\Carbon;
+use App\Models\DraftBiography;
 
 class BiographyController extends Controller
 {
@@ -1024,7 +1026,7 @@ class BiographyController extends Controller
      */
     public function index()
     {
-        $query = Biography::query();
+        $query = Biography::query()->where('created_by', auth()->id());
 
         // Search by name or title
         if (request('search')) {
@@ -1110,7 +1112,38 @@ class BiographyController extends Controller
      */
     public function create()
     {
+        $draftData = null;
 
+        // Check if we're editing a draft
+        if (request('draft_id')) {
+            $draft = \App\Models\DraftBiography::where('id', request('draft_id'))
+                ->where('created_by', auth()->id())
+                ->first();
+
+            if ($draft) {
+                $draftData = [
+                    'id' => $draft->id,
+                    'full_name' => $draft->full_name,
+                    'title' => $draft->title,
+                    'date_of_birth' => $draft->date_of_birth,
+                    'date_of_death' => $draft->date_of_death,
+                    'place_of_birth' => $draft->place_of_birth,
+                    'place_of_death' => $draft->place_of_death,
+                    'cause_of_death' => $draft->cause_of_death,
+                    'state_of_origin' => $draft->state_of_origin,
+                    'lga' => $draft->local_government_area,
+                    'ethnic_group' => $draft->ethnicity,
+                    'religion' => $draft->religion,
+                    'region' => $draft->region,
+                    'biography' => $draft->biography_text,
+                    'how_to_cite' => $draft->how_to_cite,
+                    'references' => $draft->references,
+                    'education' => $draft->education ?? [],
+                    'occupations' => $draft->occupations ?? [],
+                    'related_entries' => $draft->related_entries ?? [],
+                ];
+            }
+        }
 
         return inertia('Biographies/Create', [
             'states_and_lgas' => $this->states_and_lgas,
@@ -1119,104 +1152,205 @@ class BiographyController extends Controller
                 'value' => $b->id,
                 'label' => $b->full_name,
             ]),
+            'draftData' => $draftData,
         ]);
+    }
+
+    /**
+     * Generate auto citation for a biography
+     */
+    private function generateCitation($data, $contributorName, $slug = null)
+    {
+        $url = $slug ? "https://ndnb.ng/biography/{$slug}" : "https://ndnb.ng/biography/[slug-will-be-generated]";
+        $currentDateTime = now()->format('d F Y, H:i');
+
+        // Extract birth year from date_of_birth if available
+        $birthYear = '';
+        if (!empty($data['date_of_birth'])) {
+            $birthYear = ' (' . date('Y', strtotime($data['date_of_birth'])) . ')';
+        }
+
+        return "{$contributorName}, '{$data['full_name']}{$birthYear}', Nigerian Dictionary of National Biography, Institute for Historical Studies, Biographical Research Documentation and Legacy, available at {$url} [accessed {$currentDateTime}].";
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBiographyRequest $request)
+
+public function store(StoreBiographyRequest $request)
     {
-        $data = $request->validated();
-        $data['created_by'] = auth()->id();
+        try {
+            \Log::info('Biography store attempt started', [
+                'user_id' => auth()->id(),
+                'status' => $request->input('status'),
+                'draft_id' => $request->input('draft_id')
+            ]);
 
-        if ($data['status'] === 'draft') {
-            // Save as draft in separate table
-            $draftData = [
-                'created_by' => $data['created_by'],
-                'full_name' => $data['full_name'],
-                'title' => $data['title'] ?? null,
-                'date_of_birth' => $data['date_of_birth'] ?? null,
-                'date_of_death' => $data['date_of_death'] ?? null,
-                'place_of_birth' => $data['place_of_birth'] ?? null,
-                'place_of_death' => $data['place_of_death'] ?? null,
-                'cause_of_death' => $data['cause_of_death'] ?? null,
-                'state_of_origin' => $data['state_of_origin'] ?? null,
-                'local_government_area' => $data['lga'] ?? null,
-                'ethnicity' => $data['ethnic_group'] ?? null,
-                'religion' => $data['religion'] ?? null,
-                'region' => $data['region'] ?? null,
-                'biography_text' => $data['biography'] ?? null,
-                'how_to_cite' => $data['how_to_cite'] ?? null,
-                'references' => $data['references'] ?? null,
-                'education' => $data['education'] ?? [],
-                'occupations' => $data['occupations'] ?? [],
-                'related_entries' => $data['related_entries'] ?? [],
-            ];
-
-            \App\Models\DraftBiography::create($draftData);
+            $validated = $request->validated();
             
-            return redirect()
-                ->route('biographies.drafts')
-                ->with('success', 'Biography saved as draft successfully.');
-        } else {
-            // Submit for review - save to main biographies table
-            $slug = \Illuminate\Support\Str::slug($data['full_name']);
-            $originalSlug = $slug;
-            $count = 1;
-            while (Biography::where('slug', $slug)->exists()) {
-                $slug = $originalSlug . '-' . $count++;
-            }
-            $data['slug'] = $slug;
-            $data['submitted_at'] = now();
+            \Log::info('Validation passed', [
+                'validated_keys' => array_keys($validated)
+            ]);
 
-            $mappedData = [
-                'created_by' => $data['created_by'],
-                'full_name' => $data['full_name'],
-                'slug' => $data['slug'],
-                'title' => $data['title'] ?? null,
-                'date_of_birth' => $data['date_of_birth'] ?? null,
-                'date_of_death' => $data['date_of_death'] ?? null,
-                'place_of_birth' => $data['place_of_birth'] ?? null,
-                'place_of_death' => $data['place_of_death'] ?? null,
-                'cause_of_death' => $data['cause_of_death'] ?? null,
-                'state_of_origin' => $data['state_of_origin'] ?? null,
-                'local_government_area' => $data['lga'] ?? null,
-                'ethnicity' => $data['ethnic_group'] ?? null,
-                'religion' => $data['religion'] ?? null,
-                'region' => $data['region'] ?? null,
-                'biography_text' => $data['biography'] ?? null,
-                'how_to_cite' => $data['how_to_cite'] ?? null,
-                'references' => $data['references'] ?? null,
-                'status' => 'submitted',
-                'submitted_at' => now(),
-            ];
+            if ($validated['status'] === 'draft') {
+                // Save as draft
+                $draftData = [
+                    'created_by' => auth()->id(),
+                    'full_name' => $validated['full_name'],
+                    'title' => $validated['title'] ?? null,
+                    'date_of_birth' => $validated['date_of_birth'] ?? null,
+                    'date_of_death' => $validated['date_of_death'] ?? null,
+                    'place_of_birth' => $validated['place_of_birth'] ?? null,
+                    'place_of_death' => $validated['place_of_death'] ?? null,
+                    'cause_of_death' => $validated['cause_of_death'] ?? null,
+                    'state_of_origin' => $validated['state_of_origin'] ?? null,
+                    'local_government_area' => $validated['lga'] ?? null,
+                    'ethnicity' => $validated['ethnic_group'] ?? null,
+                    'religion' => $validated['religion'] ?? null,
+                    'language' => $validated['language'] ?? null,
+                    'region' => $validated['region'] ?? null,
+                    'biography_text' => $validated['biography'],
+                    'how_to_cite' => $validated['how_to_cite'] ?? null,
+                    'references' => $validated['references'] ?? null,
+                    'education' => $validated['education'] ?? null,
+                    'occupations' => $validated['occupations'] ?? null,
+                    'related_entries' => $validated['related_entries'] ?? null,
+                ];
 
-            $education = $data['education'] ?? [];
-            $occupations = $data['occupations'] ?? [];
-            $relatedEntries = $data['related_entries'] ?? [];
-
-            $biography = Biography::create($mappedData);
-
-            foreach ($education as $edu) {
-                if (!empty($edu['institution_name'])) {
-                    $biography->education()->create($edu);
+                if ($request->hasFile('photo')) {
+                    $draftData['photo'] = $request->file('photo')->store('biographies', 'public');
                 }
-            }
 
-            foreach ($occupations as $occ) {
-                if (!empty($occ['title'])) {
-                    $biography->occupations()->create($occ);
+                if (isset($validated['draft_id']) && $validated['draft_id']) {
+                    \Log::info('Attempting to update existing draft', ['draft_id' => $validated['draft_id']]);
+                    
+                    // Update existing draft
+                    $draft = DraftBiography::where('id', $validated['draft_id'])
+                        ->where('created_by', auth()->id())
+                        ->first();
+                    
+                    if ($draft) {
+                        \Log::info('Draft found, updating...', ['draft_id' => $draft->id]);
+                        $draft->update($draftData);
+                        \Log::info('Draft updated successfully', ['draft_id' => $draft->id]);
+                        return redirect()->route('biographies.drafts')->with('success', 'Draft updated successfully!');
+                    } else {
+                        \Log::warning('Draft not found or permission denied', [
+                            'draft_id' => $validated['draft_id'],
+                            'user_id' => auth()->id()
+                        ]);
+                        return back()->withInput()->withErrors(['error' => 'Draft not found or you do not have permission to edit it.']);
+                    }
+                } else {
+                    \Log::info('Creating new draft');
+                    // Create new draft
+                    $draft = DraftBiography::create($draftData);
+                    \Log::info('New draft created successfully', ['draft_id' => $draft->id]);
+                    return redirect()->route('biographies.drafts')->with('success', 'Biography saved as draft successfully!');
                 }
-            }
+            } else {
+                // Submit for review - save to biographies table
+                $biographyData = [
+                    'user_id' => auth()->id(),
+                    'created_by' => auth()->id(),
+                    'full_name' => $validated['full_name'],
+                    'slug' => Str::slug($validated['full_name'] . '-' . now()->timestamp),
+                    'title' => $validated['title'] ?? null,
+                    'date_of_birth' => $validated['date_of_birth'] ?? null,
+                    'place_of_birth' => $validated['place_of_birth'] ?? null,
+                    'date_of_death' => $validated['date_of_death'] ?? null,
+                    'place_of_death' => $validated['place_of_death'] ?? null,
+                    'cause_of_death' => $validated['cause_of_death'] ?? null,
+                    'state_of_origin' => $validated['state_of_origin'] ?? null,
+                    'local_government_area' => $validated['lga'] ?? null,
+                    'ethnic_group' => $validated['ethnic_group'] ?? null,
+                    'religion' => $validated['religion'] ?? null,
+                    'language' => $validated['language'] ?? null,
+                    'region' => $validated['region'] ?? null,
+                    'biography_text' => $validated['biography'],
+                    'how_to_cite' => $validated['how_to_cite'] ?? null,
+                    'references' => $validated['references'] ?? null,
+                    'status' => 'submitted',
+                    'submitted_at' => now(),
+                ];
 
-            $biography->relatedBiographies()->sync($relatedEntries);
+                // Extract birth and death years from dates
+                if (isset($validated['date_of_birth'])) {
+                    $biographyData['birth_year'] = Carbon::parse($validated['date_of_birth'])->year;
+                }
+                if (isset($validated['date_of_death'])) {
+                    $biographyData['death_year'] = Carbon::parse($validated['date_of_death'])->year;
+                }
+
+                // Handle photo upload
+                if ($request->hasFile('photo')) {
+                    $biographyData['photo'] = $request->file('photo')->store('biographies', 'public');
+                }
+
+                // Create the biography
+                $biography = Biography::create($biographyData);
+
+                // Handle education data
+                if (isset($validated['education']) && is_array($validated['education'])) {
+                    foreach ($validated['education'] as $edu) {
+                        if (!empty($edu['institution_name'])) {
+                            Education::create([
+                                'biography_id' => $biography->id,
+                                'institution_name' => $edu['institution_name'],
+                                'location' => $edu['location'] ?? null,
+                                'notes' => $edu['notes'] ?? null,
+                                'start_date' => $edu['start_date'] ?? null,
+                                'end_date' => $edu['end_date'] ?? null,
+                            ]);
+                        }
+                    }
+                }
+
+                // Handle occupations data
+                if (isset($validated['occupations']) && is_array($validated['occupations'])) {
+                    foreach ($validated['occupations'] as $occ) {
+                        if (!empty($occ['title'])) {
+                            Occupation::create([
+                                'biography_id' => $biography->id,
+                                'title' => $occ['title'],
+                                'description' => $occ['description'] ?? null,
+                                'start_date' => $occ['start_date'] ?? null,
+                                'end_date' => $occ['end_date'] ?? null,
+                            ]);
+                        }
+                    }
+                }
+
+                // Handle related entries
+                if (isset($validated['related_entries']) && is_array($validated['related_entries'])) {
+                    $biography->relatedBiographies()->sync($validated['related_entries']);
+                }
+
+                // Delete draft if it exists and was successfully submitted
+                if (isset($validated['draft_id']) && $validated['draft_id']) {
+                    DraftBiography::where('id', $validated['draft_id'])
+                        ->where('created_by', auth()->id())
+                        ->delete();
+                }
+
+                return redirect()->route('biographies.index')->with('success', 'Biography submitted for review successfully!');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Biography store error: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'data' => $request->all(),
+                'trace' => $e->getTraceAsString(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
             
-            NotificationService::notifyBiographySubmitted($biography);
+            // Flash the error for debugging
+            session()->flash('error', 'Database Error: ' . $e->getMessage() . ' on line ' . $e->getLine());
             
-            return redirect()
-                ->route('biographies.index')
-                ->with('success', 'Biography submitted for review successfully.');
+            return back()->withInput()->withErrors([
+                'error' => 'An error occurred while saving the biography. Please check the logs for details.',
+                'debug' => $e->getMessage()
+            ]);
         }
     }
 
@@ -1234,11 +1368,49 @@ class BiographyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Biography $biography)
+    public function edit($id)
     {
+        // Try to find in Biography first, then in DraftBiography
+        $biography = Biography::find($id);
+        if (!$biography) {
+            $draftBiography = \App\Models\DraftBiography::findOrFail($id);
+            // Convert draft to biography format for editing
+            $biography = new Biography();
+            $biography->id = $draftBiography->id;
+            $biography->full_name = $draftBiography->full_name;
+            $biography->title = $draftBiography->title;
+            $biography->date_of_birth = $draftBiography->date_of_birth;
+            $biography->date_of_death = $draftBiography->date_of_death;
+            $biography->place_of_birth = $draftBiography->place_of_birth;
+            $biography->place_of_death = $draftBiography->place_of_death;
+            $biography->cause_of_death = $draftBiography->cause_of_death;
+            $biography->state_of_origin = $draftBiography->state_of_origin;
+            $biography->local_government_area = $draftBiography->local_government_area;
+            $biography->ethnicity = $draftBiography->ethnicity;
+            $biography->religion = $draftBiography->religion;
+            $biography->region = $draftBiography->region;
+            $biography->biography_text = $draftBiography->biography_text;
+            $biography->how_to_cite = $draftBiography->how_to_cite;
+            $biography->references = $draftBiography->references;
+            $biography->status = 'draft';
+            $biography->isDraft = true;
+
+            // Handle JSON fields
+            $biography->education = collect($draftBiography->education ?? [])->map(function($edu) {
+                return (object) $edu;
+            });
+            $biography->occupations = collect($draftBiography->occupations ?? [])->map(function($occ) {
+                return (object) $occ;
+            });
+            $biography->relatedBiographies = collect($draftBiography->related_entries ?? []);
+        } else {
+            $biography->load(['education', 'occupations', 'relatedBiographies']);
+        }
+
         return inertia('Biographies/Edit', [
-            'biography' => $biography->load(['education', 'occupations', 'relatedBiographies']),
+            'biography' => $biography,
             'states_and_lgas' => $this->states_and_lgas,
+            'regions' => $this->regions,
             'relatedOptions' => Biography::select('id', 'full_name')->get()->map(fn($b) => [
                 'value' => $b->id,
                 'label' => $b->full_name,

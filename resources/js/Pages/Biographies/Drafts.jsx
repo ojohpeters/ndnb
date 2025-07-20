@@ -1,4 +1,3 @@
-
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 
@@ -78,9 +77,7 @@ export default function Drafts({ drafts }) {
                                                         {new Date(draft.updated_at).toLocaleDateString()}
                                                     </td>
                                                     <td className="border border-gray-200 px-4 py-2">
-                                                       <Link href={route('biographies.edit', { biography: draft.slug })}
-
-
+                                                       <Link href={route('biographies.create', { draft_id: draft.id })}
                                                             className="text-green-600 hover:text-green-800 hover:underline font-medium"
                                                         >
                                                             Continue Editing

@@ -27,9 +27,12 @@ class Biography extends Model
         'state_of_origin',
         'local_government_area',
         'ethnicity',
+        'ethnic_group',
         'religion',
         'occupation',
+        'language',
         'biography_text',
+        'biography',
         'written_by',
         'region',
         'photo',
@@ -92,5 +95,5 @@ class Biography extends Model
     {
         return $this->hasMany(Occupation::class);
     }
-    
+
 }

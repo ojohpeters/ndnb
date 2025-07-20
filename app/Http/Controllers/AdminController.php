@@ -94,4 +94,69 @@ class AdminController extends Controller
         $user->delete();
         return redirect()->route('admin.dashboard')->with('success', 'User deleted successfully!');
     }
+
+    public function users()
+    {
+        $users = User::with('biographies')->latest()->paginate(15);
+        
+        return inertia('Admin/Users', [
+            'users' => $users,
+        ]);
+    }
+
+    public function biographies()
+    {
+        $biographies = \App\Models\Biography::with(['user', 'creator'])
+            ->latest()
+            ->paginate(15);
+        
+        $stats = [
+            'total' => \App\Models\Biography::count(),
+            'submitted' => \App\Models\Biography::where('status', 'submitted')->count(),
+            'published' => \App\Models\Biography::where('status', 'published')->count(),
+            'declined' => \App\Models\Biography::where('status', 'declined')->count(),
+        ];
+        
+        return inertia('Admin/Biographies', [
+            'biographies' => $biographies,
+            'stats' => $stats,
+        ]);
+    }
+
+    public function showBiography(\App\Models\Biography $biography)
+    {
+        $biography->load(['user', 'creator', 'education', 'occupations']);
+        
+        return inertia('Admin/BiographyShow', [
+            'biography' => $biography,
+        ]);
+    }
+
+    public function approveBiography(\App\Models\Biography $biography)
+    {
+        $biography->update([
+            'status' => 'published',
+            'approved_at' => now(),
+            'reviewed_by' => auth()->id(),
+        ]);
+        
+        return redirect()->route('admin.biographies.index')->with('success', 'Biography approved and published!');
+    }
+
+    public function rejectBiography(\App\Models\Biography $biography)
+    {
+        $biography->update([
+            'status' => 'declined',
+            'reviewed_by' => auth()->id(),
+        ]);
+        
+        return redirect()->route('admin.biographies.index')->with('success', 'Biography rejected!');
+    }
+
+    public function deleteBiography(\App\Models\Biography $biography)
+    {
+        $biography->delete();
+        
+        return redirect()->route('admin.biographies.index')->with('success', 'Biography deleted!');
+    }
 }

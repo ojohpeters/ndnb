@@ -21,7 +21,8 @@ class StoreBiographyRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = [
+        return [
+            'draft_id' => 'nullable|integer|exists:draft_biographies,id',
             'full_name' => 'required|string|max:255',
             'title' => 'nullable|string|max:255',
             'date_of_birth' => 'nullable|date',
@@ -35,31 +36,24 @@ class StoreBiographyRequest extends FormRequest
             'religion' => 'nullable|string|max:255',
             'language' => 'nullable|string|max:255',
             'region' => 'nullable|string|max:255',
+            'biography' => 'required|string',
             'how_to_cite' => 'nullable|string',
             'references' => 'nullable|string',
             'status' => 'required|in:draft,submitted',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'related_entries' => 'nullable|array',
+            'related_entries.*' => 'exists:biographies,id',
             'education' => 'nullable|array',
             'education.*.institution_name' => 'nullable|string|max:255',
             'education.*.location' => 'nullable|string|max:255',
             'education.*.notes' => 'nullable|string',
             'education.*.start_date' => 'nullable|date',
-            'education.*.end_date' => 'nullable|date',
+            'education.*.end_date' => 'nullable|date|after_or_equal:education.*.start_date',
             'occupations' => 'nullable|array',
             'occupations.*.title' => 'nullable|string|max:255',
             'occupations.*.description' => 'nullable|string',
             'occupations.*.start_date' => 'nullable|date',
-            'occupations.*.end_date' => 'nullable|date',
-            'related_entries' => 'nullable|array',
-            'related_entries.*' => 'exists:biographies,id',
+            'occupations.*.end_date' => 'nullable|date|after_or_equal:occupations.*.start_date',
         ];
-
-        // Make biography required only when submitting for review
-        if ($this->input('status') === 'submitted') {
-            $rules['biography'] = 'required|string';
-        } else {
-            $rules['biography'] = 'nullable|string';
-        }
-
-        return $rules;
     }
 }

@@ -65,7 +65,7 @@ Route::get('/faq', function () {
 
 Route::get('/dashboard', function () {
     $user = auth()->user();
-    
+
     // Redirect based on role
     switch ($user->role) {
         case 'admin':
@@ -122,11 +122,19 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     // Admin Routes
     Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/users', [App\Http\Controllers\AdminController::class, 'users'])->name('users.index');
         Route::get('/users/create', [App\Http\Controllers\AdminController::class, 'createUser'])->name('users.create');
         Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
         Route::get('/users/{user}/edit', [App\Http\Controllers\AdminController::class, 'editUser'])->name('users.edit');
         Route::put('/users/{user}', [App\Http\Controllers\AdminController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'destroyUser'])->name('users.destroy');
+        
+        // Admin biography management
+        Route::get('/biographies', [App\Http\Controllers\AdminController::class, 'biographies'])->name('biographies.index');
+        Route::get('/biographies/{biography}', [App\Http\Controllers\AdminController::class, 'showBiography'])->name('biographies.show');
+        Route::post('/biographies/{biography}/approve', [App\Http\Controllers\AdminController::class, 'approveBiography'])->name('biographies.approve');
+        Route::post('/biographies/{biography}/reject', [App\Http\Controllers\AdminController::class, 'rejectBiography'])->name('biographies.reject');
+        Route::delete('/biographies/{biography}', [App\Http\Controllers\AdminController::class, 'deleteBiography'])->name('biographies.delete');
     });
 
     // Editor Dashboard Routes

@@ -110,19 +110,16 @@ export default function Index({ biographies, filters, states }) {
                                 <table className="min-w-full bg-white border">
                                     <thead>
                                         <tr>
-                                            <th className="px-4 py-2 border">
-                                                Name
+                                            <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Biography Details
                                             </th>
-                                            <th className="px-4 py-2 border">
-                                                Title
+                                            <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Status
                                             </th>
-                                            <th className="px-4 py-2 border">
-                                                State of Origin
+                                            <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Date
                                             </th>
-                                            <th className="px-4 py-2 border">
-                                                Date of Birth
-                                            </th>
-                                            <th className="px-4 py-2 border">
+                                            <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Actions
                                             </th>
                                         </tr>
@@ -138,47 +135,82 @@ export default function Index({ biographies, filters, states }) {
                                                 </td>
                                             </tr>
                                         )}
-                                        {biographies.data.map((bio) => (
-                                            <tr key={bio.id}>
-                                                <td className="border px-4 py-2">
-                                                    {bio.full_name}
+                                        {biographies.data.map((biography) => (
+                                            <tr key={biography.id}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <div className="flex items-center">
+                                                        <div className="flex-shrink-0 h-10 w-10">
+                                                            {biography.photo ? (
+                                                                <img
+                                                                    className="h-10 w-10 rounded-full object-cover"
+                                                                    src={`/storage/${biography.photo}`}
+                                                                    alt={biography.full_name}
+                                                                />
+                                                            ) : (
+                                                                <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                                                    <span className="text-sm font-medium text-gray-700">
+                                                                        {biography.full_name
+                                                                            .split(' ')
+                                                                            .map(name => name[0])
+                                                                            .join('')
+                                                                            .toUpperCase()}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="ml-4">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                <Link
+                                                                    href={route('biographies.show', biography.slug)}
+                                                                    className="hover:text-blue-600"
+                                                                >
+                                                                    {biography.full_name}
+                                                                </Link>
+                                                            </div>
+                                                            <div className="text-sm text-gray-500">
+                                                                {biography.title}
+                                                                {biography.date_of_birth && ` (${new Date(biography.date_of_birth).getFullYear()})`}
+                                                                {biography.date_of_death && ` - ${new Date(biography.date_of_death).getFullYear()}`}
+                                                            </div>
+                                                            <div className="text-xs text-gray-400 mt-1">
+                                                                {biography.state_of_origin && `${biography.state_of_origin} • `}
+                                                                {biography.biography_text && `${biography.biography_text.substring(0, 100)}...`}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </td>
-                                                <td className="border px-4 py-2">
-                                                    {bio.title}
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                        biography.status === 'published' ? 'bg-green-100 text-green-800' :
+                                                        biography.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
+                                                        biography.status === 'copy_editing' ? 'bg-yellow-100 text-yellow-800' :
+                                                        biography.status === 'editor_review' ? 'bg-purple-100 text-purple-800' :
+                                                        biography.status === 'declined' ? 'bg-red-100 text-red-800' :
+                                                        biography.status === 'returned' ? 'bg-orange-100 text-orange-800' :
+                                                        'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                        {biography.status.replace('_', ' ').toUpperCase()}
+                                                    </span>
                                                 </td>
-                                                <td className="border px-4 py-2">
-                                                    {bio.state_of_origin}
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {biography.submitted_at ? new Date(biography.submitted_at).toLocaleDateString() : 
+                                                     biography.created_at ? new Date(biography.created_at).toLocaleDateString() : 'N/A'}
                                                 </td>
-                                                <td className="border px-4 py-2">
-                                                    {bio.date_of_birth}
-                                                </td>
-                                                <td className="border px-4 py-2">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <Link
-                                                        href={route(
-                                                            "biographies.show",
-                                                            bio.slug
-                                                        )}
-                                                        className="text-indigo-600 hover:underline"
+                                                        href={route('biographies.show', biography.slug)}
+                                                        className="text-blue-600 hover:text-blue-900 mr-3"
                                                     >
                                                         View
                                                     </Link>
-                                                    <Link
-                                                        href={route(
-                                                            "biographies.edit",
-                                                            bio.slug
-                                                        )}
-                                                        className="text-indigo-600 hover:underline ml-2"
-                                                    >
-                                                        Edit
-                                                    </Link>
-                                                    <button
-                                                        onClick={() =>
-                                                            confirmDelete(bio)
-                                                        }
-                                                        className="text-red-600 hover:underline ml-2"
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                    {biography.status === 'draft' && (
+                                                        <Link
+                                                            href={route('biographies.edit', biography)}
+                                                            className="text-indigo-600 hover:text-indigo-900"
+                                                        >
+                                                            Edit
+                                                        </Link>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}
@@ -248,3 +280,4 @@ export default function Index({ biographies, filters, states }) {
         </AuthenticatedLayout>
     );
 }
+// The code has been updated to improve the biography index page by displaying more relevant information and enhancing the layout.
