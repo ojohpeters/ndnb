@@ -1,0 +1,41 @@
+MariaDB [ndnb]> DESC biographies;
++-----------------------+-----------------------------------------------------------------------------------------------------------+------+-----+---------+----------------+
+| Field                 | Type                                                                                                      | Null | Key | Default | Extra          |
++-----------------------+-----------------------------------------------------------------------------------------------------------+------+-----+---------+----------------+
+| id                    | bigint(20) unsigned                                                                                       | NO   | PRI | NULL    | auto_increment |
+| user_id               | bigint(20) unsigned                                                                                       | NO   | MUL | NULL    |                |
+| full_name             | varchar(255)                                                                                              | NO   |     | NULL    |                |
+| slug                  | varchar(255)                                                                                              | NO   | UNI | NULL    |                |
+| title                 | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| maiden_name           | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| birth_year            | year(4)                                                                                                   | YES  |     | NULL    |                |
+| death_year            | year(4)                                                                                                   | YES  |     | NULL    |                |
+| date_of_birth         | date                                                                                                      | YES  |     | NULL    |                |
+| place_of_birth        | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| date_of_death         | date                                                                                                      | YES  |     | NULL    |                |
+| place_of_death        | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| cause_of_death        | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| state_of_origin       | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| local_government_area | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| ethnicity             | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| ethnic_group          | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| religion              | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| occupation            | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| language              | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| region                | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| written_by            | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| biography             | longtext                                                                                                  | NO   |     | NULL    |                |
+| how_to_cite           | longtext                                                                                                  | NO   |     | NULL    |                |
+| references            | longtext                                                                                                  | NO   |     | NULL    |                |
+| photo                 | varchar(255)                                                                                              | YES  |     | NULL    |                |
+| created_by            | bigint(20) unsigned                                                                                       | NO   | MUL | NULL    |                |
+| created_at            | timestamp                                                                                                 | YES  |     | NULL    |                |
+| updated_at            | timestamp                                                                                                 | YES  |     | NULL    |                |
+| status                | enum('draft','submitted','under_review','copy_editing','editor_review','published','declined','returned') | NO   |     | draft   |                |
+| editor_notes          | text                                                                                                      | YES  |     | NULL    |                |
+| submitted_at          | timestamp                                                                                                 | YES  |     | NULL    |                |
+| approved_at           | timestamp                                                                                                 | YES  |     | NULL    |                |
+| published_at          | timestamp                                                                                                 | YES  |     | NULL    |                |
+| reviewed_by           | bigint(20) unsigned                                                                                       | YES  | MUL | NULL    |                |
++-----------------------+-----------------------------------------------------------------------------------------------------------+------+-----+---------+----------------+
+35 rows in set (0.001 sec)
