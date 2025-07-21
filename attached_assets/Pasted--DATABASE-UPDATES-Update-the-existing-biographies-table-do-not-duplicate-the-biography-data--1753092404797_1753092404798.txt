@@ -1,0 +1,103 @@
+ DATABASE UPDATES
+
+Update the existing biographies table (do not duplicate the biography data):
+
+    Change the status column to:
+
+enum(
+  'draft',
+  'submitted',
+  'needs_redraft',
+  'editor_approved',
+  'copyeditor_approved',
+  'eic_approved',
+  'returned_to_editor',
+  'published',
+  'declined'
+)
+
+Add these new nullable columns:
+
+    editor_id (unsignedBigInteger)
+    copy_editor_id (unsignedBigInteger)
+    editor_in_chief_id (unsignedBigInteger)
+    editor_notes (text)
+    copyeditor_notes (text)
+    eic_notes (text)
+    decline_reason (text)
+
+    Use a Laravel migration to apply this schema change.
+
+✅ CONTRIBUTOR UI LOGIC
+
+At the bottom of the biography submission/edit form, add 3 responsive buttons:
+
+[ Save ]    [ Preview ]    [ Submit ]
+
+    Save: saves with status = draft
+
+    Preview: opens the formatted biography
+
+    Submit: sets status = submitted, and sets submitted_at = now()
+
+✅ EDITOR UI (Editors Approval Dashboard - EAD)
+
+Show all biographies where status = submitted or status = needs_redraft.
+
+For each biography, display responsive buttons:
+
+[ Preview ] [ Edit ] [ Approve ] [ Redraft ] [ Decline ]
+
+    Approve → sets status = editor_approved, editor_id = auth()->id()
+
+    Redraft → sets status = needs_redraft and stores editor_notes
+
+    Decline → sets status = declined and saves decline_reason
+
+✅ COPY EDITOR UI (Copy Editors Dashboard - CED)
+
+Show all biographies where status = editor_approved.
+
+Actions:
+
+[ Preview ] [ Edit ] [ Approve ]
+
+    Approve → status = copyeditor_approved, copy_editor_id = auth()->id()
+
+✅ EDITOR-IN-CHIEF UI (EIC Dashboard)
+
+Show all biographies where status = copyeditor_approved.
+
+Actions:
+
+[ Preview ] [ Edit ] [ Approve ] [ Publish ] [ Return ] [ Decline ]
+
+    Approve → status = eic_approved, stores editor_in_chief_id
+
+    Publish → status = published, published_at = now()
+
+    Return → status = returned_to_editor, sets eic_notes
+
+    Decline → same as above, sets decline_reason
+
+📱 RESPONSIVENESS
+
+    Make all action buttons stack vertically on small screens (sm: breakpoints in Tailwind)
+
+    Use card layouts or responsive table for dashboards
+
+    Consider using color-coded tags for status badges (badge-success, badge-warning, etc)
+
+📫 OPTIONAL (If Time Permits)
+
+    Add flash notifications to contributors when their work is:
+
+        sent back for redraft
+
+        approved
+
+        declined
+
+        published
+
+    Use Inertia flash messages and send them on controller redirects.
