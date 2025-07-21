@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Http\Controllers;
@@ -54,7 +55,8 @@ class EditorInChiefDashboardController extends Controller
         $biography->update([
             'status' => 'submitted',
             'editor_notes' => $request->notes,
-            'reviewed_by' => auth()->id()
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now()
         ]);
 
         return redirect()->back()->with('success', 'Biography returned to category editor.');
@@ -69,8 +71,12 @@ class EditorInChiefDashboardController extends Controller
         $biography->update([
             'status' => 'declined',
             'editor_notes' => $request->reason,
-            'reviewed_by' => auth()->id()
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now()
         ]);
+
+        // Send notification to contributor
+        NotificationService::notifyBiographyDeclined($biography, $request->reason);
 
         return redirect()->back()->with('success', 'Biography has been declined.');
     }

@@ -14,8 +14,7 @@ class EditorDashboardController extends Controller
     public function index()
     {
         $biographies = Biography::with('creator')
-            ->where('status', 'submitted')
-            ->orWhere('status', 'returned')
+            ->whereIn('status', ['submitted', 'returned'])
             ->latest()
             ->paginate(10);
 
@@ -47,7 +46,7 @@ class EditorDashboardController extends Controller
         $biography->update([
             'status' => 'copy_editing',
             'reviewed_by' => auth()->id(),
-            'approved_at' => now(),
+            'reviewed_at' => now(),
             'editor_notes' => $request->notes
         ]);
 
@@ -64,9 +63,10 @@ class EditorDashboardController extends Controller
         ]);
 
         $biography->update([
-            'status' => 'draft',
+            'status' => 'returned',
             'editor_notes' => $request->notes,
-            'reviewed_by' => auth()->id()
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now()
         ]);
 
         // Send notification to contributor
