@@ -36,7 +36,7 @@ class StoreBiographyRequest extends FormRequest
             'religion' => 'nullable|string|max:255',
             'language' => 'nullable|string|max:255',
             'region' => 'nullable|string|max:255',
-            'biography' => 'required|string',
+            'biography' => 'required|string|max:4000', // Approximately 500 words
             'how_to_cite' => 'nullable|string',
             'references' => 'nullable|string',
             'status' => 'required|in:draft,submitted',

@@ -1,4 +1,3 @@
-
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link } from "@inertiajs/react";
 import { useRef, useState } from "react";
@@ -97,14 +96,16 @@ export default function Show({ biography, related_essays = [] }) {
                     </header>
 
                     {/* Biography Content */}
-                    <section className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8">
-                        <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeRaw]}
-                        >
-                            {bioContent}
-                        </ReactMarkdown>
-                    </section>
+                    {bioContent && (
+                        <section className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8">
+                            <ReactMarkdown 
+                                remarkPlugins={[remarkGfm]}
+                                rehypePlugins={[rehypeRaw]}
+                            >
+                                {bioContent}
+                            </ReactMarkdown>
+                        </section>
+                    )}
 
                     {/* References */}
                     <div className="my-6 sm:my-8 p-4 sm:p-6 rounded-lg border-l-4 border-green-700 bg-green-50 shadow">

@@ -16,38 +16,39 @@ class Biography extends Model
         'full_name',
         'slug',
         'title',
-        'maiden_name',
-        'birth_year',
-        'death_year',
         'date_of_birth',
-        'date_of_death',
         'place_of_birth',
+        'date_of_death',
         'place_of_death',
         'cause_of_death',
         'state_of_origin',
         'local_government_area',
-        'ethnicity',
         'ethnic_group',
         'religion',
-        'occupation',
         'language',
+        'region',
         'biography_text',
         'biography',
-        'written_by',
-        'region',
-        'photo',
         'how_to_cite',
         'references',
         'status',
-        'editor_notes',
         'submitted_at',
-        'approved_at',
+        'reviewed_at',
         'published_at',
-        'reviewed_by',
+        'birth_year',
+        'death_year',
+        'photo',
     ];
 
     protected $casts = [
-        'bibliography' => 'array',
+        'date_of_birth' => 'date',
+        'date_of_death' => 'date',
+        'submitted_at' => 'datetime',
+        'reviewed_at' => 'datetime',
+        'published_at' => 'datetime',
+        'birth_year' => 'integer',
+        'death_year' => 'integer',
+        'biography' => 'string', // Preserve as raw text for markdown
     ];
 
     // route key
@@ -84,6 +85,19 @@ class Biography extends Model
             'related_biography_id',
             'biography_id'
         );
+    }
+
+    // Accessor to get raw biography text (preserves markdown)
+    public function getBiographyTextAttribute()
+    {
+        return $this->biography_text;
+    }
+
+    // Method to get formatted HTML (for display purposes)
+    public function getBiographyHtmlAttribute()
+    {
+        // You could use a markdown parser here if needed for HTML output
+        return $this->biography_text;
     }
 
     public function education()

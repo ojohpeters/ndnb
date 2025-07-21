@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, router } from "@inertiajs/react";
 import React, { useState } from "react";
 import Select from "react-select";
 import ReactMarkdown from "react-markdown";
@@ -117,11 +117,23 @@ setData("lga", "");
 
 const handleSubmit = (e) => {
     e.preventDefault();
-    post(route("biographies.store"), {
-        transform: (data) => ({
-            ...data,
-            status: "submitted", // override here directly
-        }),
+
+    console.log("Regular submit clicked - status before:", data.status);
+
+    // Directly set the status in the data and post it
+    const submissionData = { ...data, status: "submitted" };
+
+    console.log("Regular submit - status after:", submissionData.status);
+
+    // Use the manual post method with explicit data
+    router.post(route("biographies.store"), submissionData, {
+        preserveScroll: true,
+        onSuccess: () => {
+            console.log("Biography submitted successfully");
+        },
+        onError: (errors) => {
+            console.error("Biography submission failed:", errors);
+        },
     });
 };
 
@@ -150,21 +162,23 @@ console.error("Draft save failed:", errors);
 const handleSubmitForReview = (e) => {
     e.preventDefault();
 
-    // Set only status field correctly
-    setData("status", "submitted");
+    console.log("Submit for review clicked - status before:", data.status);
 
-    // Delay post until after setData is flushed
-    setTimeout(() => {
-        post(route("biographies.store"), {
-            preserveScroll: true,
-            onSuccess: () => {
-                console.log("Biography submitted successfully");
-            },
-            onError: (errors) => {
-                console.error("Biography submission failed:", errors);
-            },
-        });
-    }, 0);
+    // Directly set the status in the data and post it
+    const submissionData = { ...data, status: "submitted" };
+
+    console.log("Submit for review - status after:", submissionData.status);
+
+    // Use the manual post method with explicit data
+    router.post(route("biographies.store"), submissionData, {
+        preserveScroll: true,
+        onSuccess: () => {
+            console.log("Biography submitted successfully");
+        },
+        onError: (errors) => {
+            console.error("Biography submission failed:", errors);
+        },
+    });
 };
 
 
@@ -449,7 +463,7 @@ return (
                             <h3 className="text-lg sm:text-xl font-semibold text-green-800 mb-3">
                                 References
                             </h3>
-                            <div className="prose prose-green max-w-none prose-sm sm:prose-base">
+                            <div className="prose prose-green max-w-none prose-sm:prose-base">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                                     {data.references}
                                 </ReactMarkdown>
@@ -484,49 +498,48 @@ return (
                         : "Create New Biography"}
                     </h1>
                 </div>
-                {Object.keys(errors).length > 0 && (
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 mb-4">
-                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-red-800">
-                                    There were errors with your
-                                    submission:
-                                </h3>
-                                <div className="mt-2 text-sm text-red-700">
-                                    <ul role="list" className="list-disc space-y-1 pl-5">
-                                        {Object.entries(errors).map(
-                                        ([field, message]) => (
-                                        <li key={field}>
-                                            <strong>
-                                                {field}:
-                                            </strong>{" "}
-                                            {Array.isArray(
-                                            message
+                <form className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
+                    >
+                    {/* Error Display at Top */}
+                    {Object.keys(errors).length > 0 && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                            clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-red-800">
+                                        There were errors with your submission:
+                                    </h3>
+                                    <div className="mt-2 text-sm text-red-700">
+                                        <ul role="list" className="list-disc space-y-1 pl-5">
+                                            {Object.entries(errors).map(
+                                            ([field, message]) => (
+                                            <li key={field}>
+                                                <strong>
+                                                    {field}:
+                                                </strong>{" "}
+                                                {Array.isArray(
+                                                message
+                                                )
+                                                ? message.join(
+                                                ", "
+                                                )
+                                                : message}
+                                            </li>
                                             )
-                                            ? message.join(
-                                            ", "
-                                            )
-                                            : message}
-                                        </li>
-                                        )
-                                        )}
-                                    </ul>
+                                            )}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                )}
-                <form className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
-                    >
+                    )}
+
                     {/* Basic Information Section */}
                     <div className="bg-green-50 p-4 sm:p-6 rounded-lg">
                         <h2 className="text-base sm:text-lg font-semibold text-green-800 mb-3 sm:mb-4">
@@ -994,19 +1007,35 @@ return (
                                 Lists, Links, etc.
                             </div>
                             <div data-color-mode="light">
-                                <MDEditor value={data.biography} onChange={(val)=>
-                                    setData("biography", val || "")
-                                    }
+                                <MDEditor 
+                                    value={data.biography} 
+                                    onChange={(val) => setData("biography", val || "")}
                                     preview="edit"
                                     hideToolbar={false}
                                     visibleDragBar={false}
                                     height={400}
-                                    />
+                                />
                             </div>
+                            {(() => {
+                                const wordCount = data.biography ? data.biography.trim().split(/\s+/).filter(word => word.length > 0).length : 0;
+                                const isOverLimit = wordCount > 500;
+                                return (
+                                    <div className="flex justify-between items-center mt-2">
+                                        <div className={`text-sm ${isOverLimit ? 'text-red-600' : 'text-gray-600'}`}>
+                                            Word count: {wordCount}/500
+                                        </div>
+                                        {isOverLimit && (
+                                            <div className="text-sm text-red-600">
+                                                Please reduce by {wordCount - 500} words
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                             {errors.biography && (
-                            <p className="mt-1 text-sm text-red-600">
-                                {errors.biography}
-                            </p>
+                                <p className="mt-1 text-sm text-red-600">
+                                    {errors.biography}
+                                </p>
                             )}
                         </div>
                     </div>

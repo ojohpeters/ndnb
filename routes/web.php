@@ -63,6 +63,14 @@ Route::get('/faq', function () {
     return Inertia::render('FAQ');
 })->name('faq');
 
+// Redirect /admin to admin dashboard
+Route::get('/admin', function () {
+    if (auth()->check() && auth()->user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('login');
+});
+
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
@@ -128,7 +136,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::get('/users/{user}/edit', [App\Http\Controllers\AdminController::class, 'editUser'])->name('users.edit');
         Route::put('/users/{user}', [App\Http\Controllers\AdminController::class, 'updateUser'])->name('users.update');
         Route::delete('/users/{user}', [App\Http\Controllers\AdminController::class, 'destroyUser'])->name('users.destroy');
-        
+
         // Admin biography management
         Route::get('/biographies', [App\Http\Controllers\AdminController::class, 'biographies'])->name('biographies.index');
         Route::get('/biographies/{biography}', [App\Http\Controllers\AdminController::class, 'showBiography'])->name('biographies.show');
@@ -195,7 +203,7 @@ Route::get('/biographies', function(Request $request) {
         $query->where('state_of_origin', $state);
     }
 
-    $biographies = $query->latest()->paginate(10)->withQueryString();
+    $biographies = $query->where('status', 'published')->latest()->paginate(10)->withQueryString();
 
     // For filter dropdown
     $states = Biography::select('state_of_origin')
@@ -211,7 +219,14 @@ Route::get('/biographies', function(Request $request) {
     ]);
 })->name('biographies.all');
 
-Route::get('/biographies/{biography}', [BiographyController::class, 'show'])->name('biographies.show');
+Route::get('/biographies/{biography:slug}', function (\App\Models\Biography $biography) {
+    // Check if biography is published or if user is the owner
+    if ($biography->status !== 'published' && (!auth()->check() || auth()->id() !== $biography->user_id)) {
+        abort(404);
+    }
+
+    return app(\App\Http\Controllers\BiographyController::class)->show($biography);
+})->name('biographies.show');
 
 Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
 Route::get('/essays/{essay}', [EssayController::class, 'show'])->name('essays.show');

@@ -1128,7 +1128,7 @@ class BiographyController extends Controller
                     'date_of_birth' => $draft->date_of_birth,
                     'date_of_death' => $draft->date_of_death,
                     'place_of_birth' => $draft->place_of_birth,
-                    'place_of_death' => $draft->place_of_death,
+                    'place_of_death' => $draft->place_ofdeath,
                     'cause_of_death' => $draft->cause_of_death,
                     'state_of_origin' => $draft->state_of_origin,
                     'lga' => $draft->local_government_area,
@@ -1187,7 +1187,7 @@ public function store(StoreBiographyRequest $request)
             ]);
 
             $validated = $request->validated();
-            
+
             \Log::info('Validation passed', [
                 'validated_keys' => array_keys($validated)
             ]);
@@ -1223,12 +1223,12 @@ public function store(StoreBiographyRequest $request)
 
                 if (isset($validated['draft_id']) && $validated['draft_id']) {
                     \Log::info('Attempting to update existing draft', ['draft_id' => $validated['draft_id']]);
-                    
+
                     // Update existing draft
                     $draft = DraftBiography::where('id', $validated['draft_id'])
                         ->where('created_by', auth()->id())
                         ->first();
-                    
+
                     if ($draft) {
                         \Log::info('Draft found, updating...', ['draft_id' => $draft->id]);
                         $draft->update($draftData);
@@ -1267,6 +1267,7 @@ public function store(StoreBiographyRequest $request)
                     'religion' => $validated['religion'] ?? null,
                     'language' => $validated['language'] ?? null,
                     'region' => $validated['region'] ?? null,
+                    'biography' => $validated['biography'],
                     'biography_text' => $validated['biography'],
                     'how_to_cite' => $validated['how_to_cite'] ?? null,
                     'references' => $validated['references'] ?? null,
@@ -1288,6 +1289,7 @@ public function store(StoreBiographyRequest $request)
                 }
 
                 // Create the biography
+                \Log::info('Creating biography with:', $biographyData);
                 $biography = Biography::create($biographyData);
 
                 // Handle education data
@@ -1343,10 +1345,10 @@ public function store(StoreBiographyRequest $request)
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ]);
-            
+
             // Flash the error for debugging
             session()->flash('error', 'Database Error: ' . $e->getMessage() . ' on line ' . $e->getLine());
-            
+
             return back()->withInput()->withErrors([
                 'error' => 'An error occurred while saving the biography. Please check the logs for details.',
                 'debug' => $e->getMessage()
@@ -1359,6 +1361,10 @@ public function store(StoreBiographyRequest $request)
      */
     public function show(Biography $biography)
     {
+        // Check if biography is published or if user is the owner
+        if ($biography->status !== 'published' && (!auth()->check() || auth()->id() !== $biography->user_id)) {
+            abort(404);
+        }
 
         return inertia('Biographies/Show', [
             'biography' => $biography->load(['education', 'occupations', 'relatedBiographies', 'relatedTo', 'creator']),
