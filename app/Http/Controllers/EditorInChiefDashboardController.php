@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Http\Controllers;
@@ -11,8 +12,8 @@ class EditorInChiefDashboardController extends Controller
 {
     public function index()
     {
-        $biographies = Biography::with('creator')
-            ->where('status', 'editor_review')
+        $biographies = Biography::with(['creator', 'editor', 'copyEditor', 'editorInChief'])
+            ->where('status', 'copyeditor_approved')
             ->latest()
             ->paginate(10);
 
@@ -23,11 +24,23 @@ class EditorInChiefDashboardController extends Controller
 
     public function show(Biography $biography)
     {
-        $biography->load('creator');
+        $biography->load(['creator', 'editor', 'copyEditor', 'editorInChief']);
 
         return Inertia::render('EditorInChief/Show', [
             'biography' => $biography
         ]);
+    }
+
+    public function approve(Request $request, Biography $biography)
+    {
+        $biography->update([
+            'status' => 'eic_approved',
+            'editor_in_chief_id' => auth()->id(),
+            'eic_notes' => $request->notes,
+            'reviewed_at' => now()
+        ]);
+
+        return redirect()->back()->with('success', 'Biography approved by Editor-in-Chief.');
     }
 
     public function publish(Request $request, Biography $biography)
@@ -35,8 +48,8 @@ class EditorInChiefDashboardController extends Controller
         $biography->update([
             'status' => 'published',
             'published_at' => now(),
-            'reviewed_by' => auth()->id(),
-            'editor_notes' => $request->notes
+            'editor_in_chief_id' => auth()->id(),
+            'eic_notes' => $request->notes
         ]);
 
         // Send congratulations to contributor
@@ -52,9 +65,9 @@ class EditorInChiefDashboardController extends Controller
         ]);
 
         $biography->update([
-            'status' => 'submitted',
-            'editor_notes' => $request->notes,
-            'reviewed_by' => auth()->id(),
+            'status' => 'returned_to_editor',
+            'eic_notes' => $request->notes,
+            'editor_in_chief_id' => auth()->id(),
             'reviewed_at' => now()
         ]);
 
@@ -69,8 +82,8 @@ class EditorInChiefDashboardController extends Controller
 
         $biography->update([
             'status' => 'declined',
-            'editor_notes' => $request->reason,
-            'reviewed_by' => auth()->id(),
+            'decline_reason' => $request->reason,
+            'editor_in_chief_id' => auth()->id(),
             'reviewed_at' => now()
         ]);
 

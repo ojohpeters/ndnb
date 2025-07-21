@@ -6,24 +6,21 @@ import { useState } from "react";
 export default function Dashboard({ biographies }) {
     const [selectedBio, setSelectedBio] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState('');
     
     const { data, setData, post, processing } = useForm({
         notes: ''
     });
 
-    const handleAction = (biography, type) => {
+    const handleAction = (biography) => {
         setSelectedBio(biography);
-        setModalType(type);
         setShowModal(true);
         setData({ notes: '' });
     };
 
     const submitAction = (e) => {
         e.preventDefault();
-        const route_name = modalType === 'approve' ? 'copy-editor.approve' : 'copy-editor.return';
         
-        post(route(route_name, selectedBio.slug), {
+        post(route('copy-editor.approve', selectedBio.slug), {
             onSuccess: () => {
                 setShowModal(false);
                 setSelectedBio(null);
@@ -33,7 +30,7 @@ export default function Dashboard({ biographies }) {
 
     const getStatusColor = (status) => {
         const colors = {
-            'copy_editing': 'bg-orange-100 text-orange-800'
+            'editor_approved': 'bg-green-100 text-green-800'
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
@@ -41,19 +38,19 @@ export default function Dashboard({ biographies }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-lg sm:text-xl font-semibold leading-tight text-green-800">
+                <h2 className="text-lg sm:text-xl font-semibold leading-tight text-blue-800">
                     Copy Editor Dashboard
                 </h2>
             }
         >
             <Head title="Copy Editor Dashboard" />
 
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white py-4 sm:py-8">
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-4 sm:py-8">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-lg rounded-lg border-t-4 border-orange-600 overflow-hidden">
-                        <div className="bg-orange-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-orange-200">
-                            <h3 className="text-base sm:text-lg font-semibold text-orange-800">
-                                Biographies Awaiting Copy Editing
+                    <div className="bg-white shadow-lg rounded-lg border-t-4 border-blue-600 overflow-hidden">
+                        <div className="bg-blue-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-blue-200">
+                            <h3 className="text-base sm:text-lg font-semibold text-blue-800">
+                                Biographies for Copy Editing
                             </h3>
                         </div>
 
@@ -61,14 +58,14 @@ export default function Dashboard({ biographies }) {
                             {biographies.data && biographies.data.length > 0 ? (
                                 biographies.data.map((biography) => (
                                     <div key={biography.id} className="p-4 sm:p-6 hover:bg-gray-50">
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <Link 
-                                                        href={route('copy-editor.show', biography.slug)}
-                                                        className="text-lg font-semibold text-gray-900 hover:text-orange-600 transition-colors"
+                                                        href={route('copy-editor.show', biography.id)}
+                                                        className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
                                                     >
-                                                        {biography.subject_name}
+                                                        {biography.subject_name || biography.full_name}
                                                     </Link>
                                                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(biography.status)}`}>
                                                         {biography.status.replace('_', ' ').toUpperCase()}
@@ -76,9 +73,10 @@ export default function Dashboard({ biographies }) {
                                                 </div>
                                                 <div className="text-sm text-gray-600 space-y-1">
                                                     <div>By: {biography.creator?.first_name} {biography.creator?.last_name}</div>
-                                                    <div>Submitted: {new Date(biography.created_at).toLocaleDateString()}</div>
+                                                    <div>Approved by Editor: {biography.editor?.first_name} {biography.editor?.last_name}</div>
+                                                    <div>Editor Approved: {new Date(biography.reviewed_at).toLocaleDateString()}</div>
                                                     {biography.editor_notes && (
-                                                        <div className="text-blue-600">
+                                                        <div className="text-green-600">
                                                             Editor Notes: {biography.editor_notes}
                                                         </div>
                                                     )}
@@ -87,24 +85,24 @@ export default function Dashboard({ biographies }) {
                                             
                                             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                                                 <Link
-                                                    href={route('copy-editor.show', biography.slug)}
+                                                    href={route('copy-editor.show', biography.id)}
+                                                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-center text-sm font-medium"
+                                                >
+                                                    Preview
+                                                </Link>
+                                                
+                                                <Link
+                                                    href={route('biographies.edit', biography.id)}
                                                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-center text-sm font-medium"
                                                 >
-                                                    Review
+                                                    Edit
                                                 </Link>
                                                 
                                                 <button
-                                                    onClick={() => handleAction(biography, 'approve')}
+                                                    onClick={() => handleAction(biography)}
                                                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                                                 >
                                                     Approve
-                                                </button>
-                                                
-                                                <button
-                                                    onClick={() => handleAction(biography, 'return')}
-                                                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
-                                                >
-                                                    Return to Editor
                                                 </button>
                                             </div>
                                         </div>
@@ -126,7 +124,7 @@ export default function Dashboard({ biographies }) {
                                             href={link.url || '#'}
                                             className={`px-3 py-2 text-sm rounded-md ${
                                                 link.active
-                                                    ? 'bg-orange-600 text-white'
+                                                    ? 'bg-blue-600 text-white'
                                                     : link.url
                                                     ? 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -146,19 +144,19 @@ export default function Dashboard({ biographies }) {
                     <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                         <div className="mt-3">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                {modalType === 'approve' ? 'Approve Biography' : 'Return to Editor'}
+                                Approve for Editor-in-Chief Review
                             </h3>
                             <form onSubmit={submitAction}>
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Notes (optional)
+                                        Copy Editor Notes (optional)
                                     </label>
                                     <textarea
                                         value={data.notes}
                                         onChange={(e) => setData('notes', e.target.value)}
-                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         rows="3"
-                                        placeholder="Add any notes..."
+                                        placeholder="Add any copy editing notes..."
                                     />
                                 </div>
                                 <div className="flex justify-end gap-3">
@@ -172,13 +170,9 @@ export default function Dashboard({ biographies }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className={`px-4 py-2 text-white rounded-md ${
-                                            modalType === 'approve'
-                                                ? 'bg-green-600 hover:bg-green-700'
-                                                : 'bg-yellow-600 hover:bg-yellow-700'
-                                        } ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`px-4 py-2 text-white rounded-md bg-green-600 hover:bg-green-700 ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        {processing ? 'Processing...' : (modalType === 'approve' ? 'Approve' : 'Return')}
+                                        {processing ? 'Processing...' : 'Approve & Send to EIC'}
                                     </button>
                                 </div>
                             </form>

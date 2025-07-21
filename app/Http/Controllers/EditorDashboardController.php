@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Http\Controllers;
@@ -13,8 +14,8 @@ class EditorDashboardController extends Controller
 {
     public function index()
     {
-        $biographies = Biography::with('creator')
-            ->whereIn('status', ['submitted', 'returned'])
+        $biographies = Biography::with(['creator', 'editor'])
+            ->whereIn('status', ['submitted', 'needs_redraft'])
             ->latest()
             ->paginate(10);
 
@@ -25,7 +26,7 @@ class EditorDashboardController extends Controller
 
     public function show(Biography $biography)
     {
-        $biography->load('creator');
+        $biography->load(['creator', 'editor']);
 
         return Inertia::render('Editor/Show', [
             'biography' => $biography
@@ -34,7 +35,7 @@ class EditorDashboardController extends Controller
 
     public function preview(Biography $biography)
     {
-        $biography->load('creator');
+        $biography->load(['creator', 'editor']);
 
         return Inertia::render('Editor/Preview', [
             'biography' => $biography
@@ -44,8 +45,8 @@ class EditorDashboardController extends Controller
     public function approve(Request $request, Biography $biography)
     {
         $biography->update([
-            'status' => 'copy_editing',
-            'reviewed_by' => auth()->id(),
+            'status' => 'editor_approved',
+            'editor_id' => auth()->id(),
             'reviewed_at' => now(),
             'editor_notes' => $request->notes
         ]);
@@ -63,9 +64,9 @@ class EditorDashboardController extends Controller
         ]);
 
         $biography->update([
-            'status' => 'returned',
+            'status' => 'needs_redraft',
             'editor_notes' => $request->notes,
-            'reviewed_by' => auth()->id(),
+            'editor_id' => auth()->id(),
             'reviewed_at' => now()
         ]);
 
@@ -83,8 +84,9 @@ class EditorDashboardController extends Controller
 
         $biography->update([
             'status' => 'declined',
-            'editor_notes' => $request->reason,
-            'reviewed_by' => auth()->id()
+            'decline_reason' => $request->reason,
+            'editor_id' => auth()->id(),
+            'reviewed_at' => now()
         ]);
 
         // Send notification to contributor

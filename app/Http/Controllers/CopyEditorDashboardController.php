@@ -11,8 +11,8 @@ class CopyEditorDashboardController extends Controller
 {
     public function index()
     {
-        $biographies = Biography::with('creator')
-            ->where('status', 'copy_editing')
+        $biographies = Biography::with(['creator', 'editor', 'copyEditor'])
+            ->where('status', 'editor_approved')
             ->latest()
             ->paginate(10);
 
@@ -23,8 +23,8 @@ class CopyEditorDashboardController extends Controller
 
     public function show(Biography $biography)
     {
-        $biography->load('creator');
-        
+        $biography->load(['creator', 'editor', 'copyEditor']);
+
         return Inertia::render('CopyEditor/Show', [
             'biography' => $biography
         ]);
@@ -33,9 +33,10 @@ class CopyEditorDashboardController extends Controller
     public function approve(Request $request, Biography $biography)
     {
         $biography->update([
-            'status' => 'editor_review',
-            'reviewed_by' => auth()->id(),
-            'editor_notes' => $request->notes
+            'status' => 'copyeditor_approved',
+            'copy_editor_id' => auth()->id(),
+            'copyeditor_notes' => $request->notes,
+            'reviewed_at' => now()
         ]);
 
         // Notify Editor-in-Chief

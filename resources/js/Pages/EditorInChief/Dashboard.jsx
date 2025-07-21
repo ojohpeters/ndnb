@@ -22,7 +22,8 @@ export default function Dashboard({ biographies }) {
 
     const submitAction = (e) => {
         e.preventDefault();
-        const route_name = modalType === 'publish' ? 'editor-in-chief.publish' : 
+        const route_name = modalType === 'approve' ? 'editor-in-chief.approve' :
+                          modalType === 'publish' ? 'editor-in-chief.publish' : 
                           modalType === 'return' ? 'editor-in-chief.return' : 'editor-in-chief.decline';
         
         post(route(route_name, selectedBio.slug), {
@@ -35,7 +36,7 @@ export default function Dashboard({ biographies }) {
 
     const getStatusColor = (status) => {
         const colors = {
-            'editor_review': 'bg-purple-100 text-purple-800'
+            'copyeditor_approved': 'bg-purple-100 text-purple-800'
         };
         return colors[status] || 'bg-gray-100 text-gray-800';
     };
@@ -43,7 +44,7 @@ export default function Dashboard({ biographies }) {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-lg sm:text-xl font-semibold leading-tight text-green-800">
+                <h2 className="text-lg sm:text-xl font-semibold leading-tight text-purple-800">
                     Editor-in-Chief Dashboard
                 </h2>
             }
@@ -63,14 +64,14 @@ export default function Dashboard({ biographies }) {
                             {biographies.data && biographies.data.length > 0 ? (
                                 biographies.data.map((biography) => (
                                     <div key={biography.id} className="p-4 sm:p-6 hover:bg-gray-50">
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <Link 
                                                         href={route('editor-in-chief.show', biography.id)}
                                                         className="text-lg font-semibold text-gray-900 hover:text-purple-600 transition-colors"
                                                     >
-                                                        {biography.subject_name}
+                                                        {biography.subject_name || biography.full_name}
                                                     </Link>
                                                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(biography.status)}`}>
                                                         {biography.status.replace('_', ' ').toUpperCase()}
@@ -78,10 +79,11 @@ export default function Dashboard({ biographies }) {
                                                 </div>
                                                 <div className="text-sm text-gray-600 space-y-1">
                                                     <div>By: {biography.creator?.first_name} {biography.creator?.last_name}</div>
-                                                    <div>Submitted: {new Date(biography.created_at).toLocaleDateString()}</div>
-                                                    {biography.editor_notes && (
+                                                    <div>Copy Editor: {biography.copyEditor?.first_name} {biography.copyEditor?.last_name}</div>
+                                                    <div>Copy Edited: {new Date(biography.reviewed_at).toLocaleDateString()}</div>
+                                                    {biography.copyeditor_notes && (
                                                         <div className="text-blue-600">
-                                                            Notes: {biography.editor_notes}
+                                                            Copy Editor Notes: {biography.copyeditor_notes}
                                                         </div>
                                                     )}
                                                 </div>
@@ -90,10 +92,24 @@ export default function Dashboard({ biographies }) {
                                             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                                                 <Link
                                                     href={route('editor-in-chief.show', biography.id)}
+                                                    className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-center text-sm font-medium"
+                                                >
+                                                    Preview
+                                                </Link>
+                                                
+                                                <Link
+                                                    href={route('biographies.edit', biography.id)}
                                                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-center text-sm font-medium"
                                                 >
-                                                    Review
+                                                    Edit
                                                 </Link>
+                                                
+                                                <button
+                                                    onClick={() => handleAction(biography, 'approve')}
+                                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                                >
+                                                    Approve
+                                                </button>
                                                 
                                                 <button
                                                     onClick={() => handleAction(biography, 'publish')}
@@ -106,7 +122,7 @@ export default function Dashboard({ biographies }) {
                                                     onClick={() => handleAction(biography, 'return')}
                                                     className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
                                                 >
-                                                    Return to Editor
+                                                    Return
                                                 </button>
                                                 
                                                 <button
@@ -155,13 +171,15 @@ export default function Dashboard({ biographies }) {
                     <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                         <div className="mt-3">
                             <h3 className="text-lg font-medium text-gray-900 mb-4">
-                                {modalType === 'publish' ? 'Publish Biography' : 
+                                {modalType === 'approve' ? 'Approve Biography' : 
+                                 modalType === 'publish' ? 'Publish Biography' :
                                  modalType === 'return' ? 'Return to Editor' : 'Decline Biography'}
                             </h3>
                             <form onSubmit={submitAction}>
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        {modalType === 'decline' ? 'Reason (required)' : 'Notes (optional)'}
+                                        {modalType === 'decline' ? 'Reason (required)' : 
+                                         modalType === 'return' ? 'Notes (required)' : 'Notes (optional)'}
                                     </label>
                                     <textarea
                                         value={modalType === 'decline' ? data.reason : data.notes}
@@ -169,7 +187,7 @@ export default function Dashboard({ biographies }) {
                                         className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                                         rows="3"
                                         placeholder={modalType === 'decline' ? 'Please provide a reason...' : 'Add any notes...'}
-                                        required={modalType === 'decline'}
+                                        required={modalType === 'decline' || modalType === 'return'}
                                     />
                                 </div>
                                 <div className="flex justify-end gap-3">
@@ -184,12 +202,14 @@ export default function Dashboard({ biographies }) {
                                         type="submit"
                                         disabled={processing}
                                         className={`px-4 py-2 text-white rounded-md ${
+                                            modalType === 'approve' ? 'bg-blue-600 hover:bg-blue-700' :
                                             modalType === 'publish' ? 'bg-green-600 hover:bg-green-700' :
                                             modalType === 'return' ? 'bg-yellow-600 hover:bg-yellow-700' :
                                             'bg-red-600 hover:bg-red-700'
                                         } ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
                                         {processing ? 'Processing...' : 
+                                         modalType === 'approve' ? 'Approve' :
                                          modalType === 'publish' ? 'Publish' :
                                          modalType === 'return' ? 'Return' : 'Decline'}
                                     </button>

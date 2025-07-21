@@ -44,6 +44,12 @@ class Biography extends Model
         'birth_year',
         'death_year',
         'editor_notes',
+        'editor_id',
+        'copy_editor_id',
+        'editor_in_chief_id',
+        'copyeditor_notes',
+        'eic_notes',
+        'decline_reason',
     ];
 
     protected $casts = [
@@ -114,6 +120,21 @@ class Biography extends Model
     public function occupations()
     {
         return $this->hasMany(Occupation::class);
+    }
+
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'editor_id');
+    }
+
+    public function copyEditor()
+    {
+        return $this->belongsTo(User::class, 'copy_editor_id');
+    }
+
+    public function editorInChief()
+    {
+        return $this->belongsTo(User::class, 'editor_in_chief_id');
     }
 
 }

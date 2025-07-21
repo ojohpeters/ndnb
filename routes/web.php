@@ -145,8 +145,8 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::delete('/biographies/{biography}', [App\Http\Controllers\AdminController::class, 'deleteBiography'])->name('biographies.delete');
     });
 
-    // Editor Dashboard Routes
-    Route::prefix('editor')->name('editor.')->middleware('role:editor')->group(function () {
+    // Editor routes
+    Route::middleware(['auth', 'role:editor'])->prefix('editor')->name('editor.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\EditorDashboardController::class, 'index'])->name('dashboard');
         Route::get('/biography/{biography}', [App\Http\Controllers\EditorDashboardController::class, 'show'])->name('show');
         Route::get('/biography/{biography}/preview', [App\Http\Controllers\EditorDashboardController::class, 'preview'])->name('preview');
@@ -155,27 +155,18 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::post('/biography/{biography}/decline', [App\Http\Controllers\EditorDashboardController::class, 'decline'])->name('decline');
     });
 
-    // Copy Editor Dashboard Routes
-    Route::prefix('copy-editor')->name('copy-editor.')->middleware('role:copy_editor')->group(function () {
+    // Copy Editor routes
+    Route::middleware(['auth', 'role:copy_editor'])->prefix('copy-editor')->name('copy-editor.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\CopyEditorDashboardController::class, 'index'])->name('dashboard');
         Route::get('/biography/{biography}', [App\Http\Controllers\CopyEditorDashboardController::class, 'show'])->name('show');
         Route::post('/biography/{biography}/approve', [App\Http\Controllers\CopyEditorDashboardController::class, 'approve'])->name('approve');
-        Route::post('/biography/{biography}/return', [App\Http\Controllers\CopyEditorDashboardController::class, 'returnToEditor'])->name('return');
     });
 
-    // Editor-in-Chief Dashboard Routes
-    Route::prefix('editor-in-chief')->name('editor-in-chief.')->middleware('role:editor_in_chief')->group(function () {
+    // Editor in Chief routes
+    Route::middleware(['auth', 'role:editor_in_chief'])->prefix('editor-in-chief')->name('editor-in-chief.')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\EditorInChiefDashboardController::class, 'index'])->name('dashboard');
         Route::get('/biography/{biography}', [App\Http\Controllers\EditorInChiefDashboardController::class, 'show'])->name('show');
-        Route::post('/biography/{biography}/publish', [App\Http\Controllers\EditorInChiefDashboardController::class, 'publish'])->name('publish');
-        Route::post('/biography/{biography}/return', [App\Http\Controllers\EditorInChiefDashboardController::class, 'returnToEditor'])->name('return');
-        Route::post('/biography/{biography}/decline', [App\Http\Controllers\EditorInChiefDashboardController::class, 'decline'])->name('decline');
-    });
-
-    // Editor-in-Chief Dashboard Routes
-    Route::prefix('editor-in-chief')->name('editor-in-chief.')->middleware('role:editor_in_chief')->group(function () {
-        Route::get('/dashboard', [App\Http\Controllers\EditorInChiefDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/biography/{biography}', [App\Http\Controllers\EditorInChiefDashboardController::class, 'show'])->name('show');
+        Route::post('/biography/{biography}/approve', [App\Http\Controllers\EditorInChiefDashboardController::class, 'approve'])->name('approve');
         Route::post('/biography/{biography}/publish', [App\Http\Controllers\EditorInChiefDashboardController::class, 'publish'])->name('publish');
         Route::post('/biography/{biography}/return', [App\Http\Controllers\EditorInChiefDashboardController::class, 'returnToEditor'])->name('return');
         Route::post('/biography/{biography}/decline', [App\Http\Controllers\EditorInChiefDashboardController::class, 'decline'])->name('decline');

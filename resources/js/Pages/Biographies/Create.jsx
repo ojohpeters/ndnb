@@ -115,27 +115,56 @@ setCurrentLgas(stateData ? stateData.lgas : []);
 setData("lga", "");
 };
 
-const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = (status) => {
+        const formData = new FormData();
 
-    console.log("Regular submit clicked - status before:", data.status);
+        // Add status
+        formData.append('status', status);
 
-    // Directly set the status in the data and post it
-    const submissionData = { ...data, status: "submitted" };
+        // Add all form fields
+        Object.keys(data).forEach(key => {
+            if (key === 'photo' && data[key] instanceof File) {
+                formData.append(key, data[key]);
+            } else if (key === 'education' || key === 'occupations' || key === 'related_entries') {
+                formData.append(key, JSON.stringify(data[key]));
+            } else if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
+                formData.append(key, data[key]);
+            }
+        });
 
-    console.log("Regular submit - status after:", submissionData.status);
+        if (draftData?.id) {
+            formData.append('draft_id', draftData.id);
+        }
 
-    // Use the manual post method with explicit data
-    router.post(route("biographies.store"), submissionData, {
-        preserveScroll: true,
-        onSuccess: () => {
-            console.log("Biography submitted successfully");
-        },
-        onError: (errors) => {
-            console.error("Biography submission failed:", errors);
-        },
-    });
-};
+        post(route('biographies.store'), {
+            data: formData,
+            forceFormData: true,
+        });
+    };
+
+    const handlePreview = () => {
+        // Simple preview - you can enhance this to open in modal or new tab
+        const previewContent = `
+            <h1>${data.full_name}</h1>
+            ${data.title ? `<h2>${data.title}</h2>` : ''}
+            <div>${data.biography}</div>
+        `;
+
+        const previewWindow = window.open('', '_blank');
+        previewWindow.document.write(`
+            <html>
+                <head><title>Preview - ${data.full_name}</title></head>
+                <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+                    ${previewContent}
+                </body>
+            </html>
+        `);
+    };
+
+    const submit = (e) => {
+        e.preventDefault();
+        handleSubmit('draft');
+    };
 
 
 
