@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -25,7 +24,7 @@ class EditorInChiefDashboardController extends Controller
     public function show(Biography $biography)
     {
         $biography->load('creator');
-        
+
         return Inertia::render('EditorInChief/Show', [
             'biography' => $biography
         ]);

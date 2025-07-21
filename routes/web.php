@@ -172,6 +172,15 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         Route::post('/biography/{biography}/decline', [App\Http\Controllers\EditorInChiefDashboardController::class, 'decline'])->name('decline');
     });
 
+    // Editor-in-Chief Dashboard Routes
+    Route::prefix('editor-in-chief')->name('editor-in-chief.')->middleware('role:editor_in_chief')->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\EditorInChiefDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/biography/{biography}', [App\Http\Controllers\EditorInChiefDashboardController::class, 'show'])->name('show');
+        Route::post('/biography/{biography}/publish', [App\Http\Controllers\EditorInChiefDashboardController::class, 'publish'])->name('publish');
+        Route::post('/biography/{biography}/return', [App\Http\Controllers\EditorInChiefDashboardController::class, 'returnToEditor'])->name('return');
+        Route::post('/biography/{biography}/decline', [App\Http\Controllers\EditorInChiefDashboardController::class, 'decline'])->name('decline');
+    });
+
     Route::resource('biographies', BiographyController::class);
     Route::get('biographies-drafts', [BiographyController::class, 'drafts'])->name('biographies.drafts');
     Route::resource('essays', EssayController::class);
