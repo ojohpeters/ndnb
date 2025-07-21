@@ -23,7 +23,7 @@ export default function Dashboard({ biographies }) {
         e.preventDefault();
         const route_name = modalType === 'approve' ? 'copy-editor.approve' : 'copy-editor.return';
         
-        post(route(route_name, selectedBio.id), {
+        post(route(route_name, selectedBio.slug), {
             onSuccess: () => {
                 setShowModal(false);
                 setSelectedBio(null);
@@ -65,7 +65,7 @@ export default function Dashboard({ biographies }) {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <Link 
-                                                        href={route('copy-editor.show', biography.id)}
+                                                        href={route('copy-editor.show', biography.slug)}
                                                         className="text-lg font-semibold text-gray-900 hover:text-orange-600 transition-colors"
                                                     >
                                                         {biography.subject_name}
@@ -87,7 +87,7 @@ export default function Dashboard({ biographies }) {
                                             
                                             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                                                 <Link
-                                                    href={route('copy-editor.show', biography.id)}
+                                                    href={route('copy-editor.show', biography.slug)}
                                                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-center text-sm font-medium"
                                                 >
                                                     Review

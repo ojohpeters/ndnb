@@ -25,7 +25,7 @@ export default function Dashboard({ biographies }) {
         const route_name = modalType === 'publish' ? 'editor-in-chief.publish' : 
                           modalType === 'return' ? 'editor-in-chief.return' : 'editor-in-chief.decline';
         
-        post(route(route_name, selectedBio.id), {
+        post(route(route_name, selectedBio.slug), {
             onSuccess: () => {
                 setShowModal(false);
                 setSelectedBio(null);

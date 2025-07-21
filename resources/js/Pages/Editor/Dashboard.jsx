@@ -24,7 +24,7 @@ export default function Dashboard({ biographies }) {
         const route_name = modalType === 'approve' ? 'editor.approve' : 
                           modalType === 'redraft' ? 'editor.redraft' : 'editor.decline';
 
-        post(route(route_name, selectedBio.id), {
+        post(route(route_name, selectedBio.slug), {
             onSuccess: () => {
                 setShowModal(false);
                 setSelectedBio(null);
@@ -89,13 +89,13 @@ export default function Dashboard({ biographies }) {
 
                                             <div className="grid grid-cols-2 gap-2">
                                                 <Link
-                                                    href={route('editor.preview', biography.id)}
+                                                    href={route('editor.preview', biography.slug)}
                                                     className="text-center text-blue-600 hover:text-blue-900 bg-blue-100 px-2 py-1 rounded text-xs"
                                                 >
                                                     Preview
                                                 </Link>
                                                 <Link
-                                                    href={route('editor.show', biography.id)}
+                                                    href={route('editor.show', biography.slug)}
                                                     className="text-center text-green-600 hover:text-green-900 bg-green-100 px-2 py-1 rounded text-xs"
                                                 >
                                                     Edit
